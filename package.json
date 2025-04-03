@@ -1,7 +1,13 @@
 {
-  "dependencies": {},
+  "dependencies": {
+    "@ai-sdk/google": "^1.2.5",
+    "@mastra/core": "^0.7.0",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.2"
+  },
   "devDependencies": {
     "@types/bun": "^1.2.8",
-    "@types/node": "^22.13.14"
+    "@types/node": "^22.13.14",
+    "mastra": "^0.4.4"
   }
 }

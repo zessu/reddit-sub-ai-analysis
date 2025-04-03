@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 type Author = {
   deleted: boolean;
   icon: string;
@@ -80,17 +82,19 @@ type ApiResponse = {
   pageInfo: cursorInfo;
 };
 
-type SimplifiedRedditPost = {
-  authorName: string;
-  authorId: string;
-  authorUrl: string;
-  contentText: string;
-  creationDate: string;
-  title: string;
-  url: string;
-};
+export const SimplifiedRedditPostSchema = z.object({
+  authorName: z.string(),
+  authorId: z.string(),
+  authorUrl: z.string(),
+  contentText: z.string(),
+  creationDate: z.string(),
+  title: z.string(),
+  url: z.string(),
+});
 
-async function fetchRedditPosts(
+type SimplifiedRedditPost = z.infer<typeof SimplifiedRedditPostSchema>;
+
+export async function fetchRedditPosts(
   subreddit: string
 ): Promise<SimplifiedRedditPost[]> {
   const allPosts: RedditPost[] = [];
@@ -104,14 +108,17 @@ async function fetchRedditPosts(
     const options = {
       method: "GET",
       headers: {
-        "x-rapidapi-host": Bun.env.RAPID_API_HOST as string,
-        "x-rapidapi-key": Bun.env.RAPID_API_KEY as string,
+        "x-rapidapi-host": process.env.RAPID_API_HOST as string,
+        "x-rapidapi-key": process.env.RAPID_API_KEY as string,
       },
     };
 
     try {
       const response = await fetch(url, options);
       const result = (await response.json()) as ApiResponse;
+      console.log(">>>>>>>>>>>>>>>>>>>>");
+      console.log(options);
+      console.log(">>>>>>>>>>>>>>>>>>>>");
       allPosts.push(...result.data);
       nextCursor = result.pageInfo.nextPageCursor;
 
@@ -135,11 +142,3 @@ async function fetchRedditPosts(
     url: post.url,
   }));
 }
-
-async function main() {
-  const subreddit = Bun.env.REDDIT_SUB as string;
-  const posts = await fetchRedditPosts(subreddit);
-  console.log(posts.length);
-}
-
-main().catch(console.error);
