@@ -1,19 +1,19 @@
-import { evaluate } from "@mastra/core/eval";
-import { registerHook, AvailableHooks } from "@mastra/core/hooks";
-import { TABLE_EVALS } from "@mastra/core/storage";
-import { checkEvalStorageFields } from "@mastra/core/utils";
-import { createTool, Agent, Mastra, isVercelTool } from "@mastra/core";
-import { google } from "@ai-sdk/google";
-import { z, ZodFirstPartyTypeKind, ZodOptional } from "zod";
-import { readFile } from "fs/promises";
-import { join } from "path";
-import { pathToFileURL } from "url";
-import { createServer } from "http";
-import { Http2ServerRequest } from "http2";
-import { Readable } from "stream";
-import crypto from "crypto";
-import { createReadStream, lstatSync } from "fs";
-import { Agent as Agent$1 } from "@mastra/core/agent";
+import { evaluate } from '@mastra/core/eval';
+import { registerHook, AvailableHooks } from '@mastra/core/hooks';
+import { TABLE_EVALS } from '@mastra/core/storage';
+import { checkEvalStorageFields } from '@mastra/core/utils';
+import { createTool, Agent, Mastra, isVercelTool } from '@mastra/core';
+import { google } from '@ai-sdk/google';
+import { z, ZodFirstPartyTypeKind, ZodOptional } from 'zod';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
+import { pathToFileURL } from 'url';
+import { createServer } from 'http';
+import { Http2ServerRequest } from 'http2';
+import { Readable } from 'stream';
+import crypto from 'crypto';
+import { createReadStream, lstatSync } from 'fs';
+import { Agent as Agent$1 } from '@mastra/core/agent';
 
 const SimplifiedRedditPostSchema = z.object({
   authorName: z.string(),
@@ -22,7 +22,7 @@ const SimplifiedRedditPostSchema = z.object({
   contentText: z.string(),
   creationDate: z.string(),
   title: z.string(),
-  url: z.string(),
+  url: z.string()
 });
 async function fetchRedditPosts(subreddit) {
   const allPosts = [];
@@ -35,12 +35,15 @@ async function fetchRedditPosts(subreddit) {
       method: "GET",
       headers: {
         "x-rapidapi-host": process.env.RAPID_API_HOST,
-        "x-rapidapi-key": process.env.RAPID_API_KEY,
-      },
+        "x-rapidapi-key": process.env.RAPID_API_KEY
+      }
     };
     try {
       const response = await fetch(url, options);
       const result = await response.json();
+      console.log(">>>>>>>>>>>>>>>>>>>>");
+      console.log(options);
+      console.log(">>>>>>>>>>>>>>>>>>>>");
       allPosts.push(...result.data);
       nextCursor = result.pageInfo.nextPageCursor;
       if (!result.pageInfo.hasNextPage) break;
@@ -57,7 +60,7 @@ async function fetchRedditPosts(subreddit) {
     contentText: post.content.text,
     creationDate: post.creationDate,
     title: post.title,
-    url: post.url,
+    url: post.url
   }));
 }
 
@@ -68,7 +71,7 @@ const subredditPostExtractor = createTool({
   outputSchema: z.array(SimplifiedRedditPostSchema),
   execute: async ({ context }) => {
     return await fetchRedditPosts(context.sub);
-  },
+  }
 });
 
 const redditInfoAgent = new Agent({
@@ -93,13 +96,13 @@ When responding:
 
 Use the redditSearchTool to retrieve relevant posts and information.`,
   model: google("gemini-2.0-flash"),
-  tools: { subredditPostExtractor },
+  tools: { subredditPostExtractor }
 });
 
 const mastra = new Mastra({
   agents: {
-    redditInfoAgent,
-  },
+    redditInfoAgent
+  }
 });
 
 // src/utils/filepath.ts
@@ -113,7 +116,7 @@ var getFilePath = (options) => {
   }
   const path = getFilePathWithoutDefaultDocument({
     root: options.root,
-    filename,
+    filename
   });
   return path;
 };
@@ -202,14 +205,13 @@ var _baseMimes = {
   "3gp": "video/3gpp",
   "3g2": "video/3gpp2",
   gltf: "model/gltf+json",
-  glb: "model/gltf-binary",
+  glb: "model/gltf-binary"
 };
 var baseMimes = _baseMimes;
 
 // src/utils/html.ts
 var HtmlEscapedCallbackPhase = {
-  Stringify: 1,
-};
+  Stringify: 1};
 var raw = (value, callbacks) => {
   const escapedString = new String(value);
   escapedString.isEscaped = true;
@@ -229,12 +231,12 @@ var stringBufferToString = async (buffer, callbacks) => {
     }
     let r = resolvedBuffer[i];
     if (typeof r === "object") {
-      callbacks.push(...(r.callbacks || []));
+      callbacks.push(...r.callbacks || []);
     }
     const isEscaped = r.isEscaped;
     r = await (typeof r === "object" ? r.toString() : r);
     if (typeof r === "object") {
-      callbacks.push(...(r.callbacks || []));
+      callbacks.push(...r.callbacks || []);
     }
     if (r.isEscaped ?? isEscaped) {
       str += r;
@@ -287,18 +289,10 @@ var resolveCallbackSync = (str) => {
   }
   const buffer = [str];
   const context = {};
-  callbacks.forEach((c) =>
-    c({ phase: HtmlEscapedCallbackPhase.Stringify, buffer, context })
-  );
+  callbacks.forEach((c) => c({ phase: HtmlEscapedCallbackPhase.Stringify, buffer, context }));
   return buffer[0];
 };
-var resolveCallback = async (
-  str,
-  phase,
-  preserveCallbacks,
-  context,
-  buffer
-) => {
+var resolveCallback = async (str, phase, preserveCallbacks, context, buffer) => {
   if (typeof str === "object" && !(str instanceof String)) {
     if (!(str instanceof Promise)) {
       str = str.toString();
@@ -316,13 +310,9 @@ var resolveCallback = async (
   } else {
     buffer = [str];
   }
-  const resStr = Promise.all(
-    callbacks.map((c) => c({ phase, buffer, context }))
-  ).then((res) =>
-    Promise.all(
-      res
-        .filter(Boolean)
-        .map((str2) => resolveCallback(str2, phase, false, context, buffer))
+  const resStr = Promise.all(callbacks.map((c) => c({ phase, buffer, context }))).then(
+    (res) => Promise.all(
+      res.filter(Boolean).map((str2) => resolveCallback(str2, phase, false, context, buffer))
     ).then(() => buffer[0])
   );
   {
@@ -335,20 +325,14 @@ var html = (strings, ...values) => {
   const buffer = [""];
   for (let i = 0, len = strings.length - 1; i < len; i++) {
     buffer[0] += strings[i];
-    const children = Array.isArray(values[i])
-      ? values[i].flat(Infinity)
-      : [values[i]];
+    const children = Array.isArray(values[i]) ? values[i].flat(Infinity) : [values[i]];
     for (let i2 = 0, len2 = children.length; i2 < len2; i2++) {
       const child = children[i2];
       if (typeof child === "string") {
         escapeToBuffer(child, buffer);
       } else if (typeof child === "number") {
         buffer[0] += child;
-      } else if (
-        typeof child === "boolean" ||
-        child === null ||
-        child === void 0
-      ) {
+      } else if (typeof child === "boolean" || child === null || child === void 0) {
         continue;
       } else if (typeof child === "object" && child.isEscaped) {
         if (child.callbacks) {
@@ -369,11 +353,7 @@ var html = (strings, ...values) => {
     }
   }
   buffer[0] += strings.at(-1);
-  return buffer.length === 1
-    ? "callbacks" in buffer
-      ? raw(resolveCallbackSync(raw(buffer[0], buffer.callbacks)))
-      : raw(buffer[0])
-    : stringBufferToString(buffer, buffer.callbacks);
+  return buffer.length === 1 ? "callbacks" in buffer ? raw(resolveCallbackSync(raw(buffer[0], buffer.callbacks))) : raw(buffer[0]) : stringBufferToString(buffer, buffer.callbacks);
 };
 
 // src/compose.ts
@@ -393,7 +373,7 @@ var compose = (middleware, onError, onNotFound) => {
         handler = middleware[i][0][0];
         context.req.routeIndex = i;
       } else {
-        handler = (i === middleware.length && next) || void 0;
+        handler = i === middleware.length && next || void 0;
       }
       if (handler) {
         try {
@@ -421,18 +401,11 @@ var compose = (middleware, onError, onNotFound) => {
 };
 
 // src/utils/body.ts
-var parseBody = async (
-  request,
-  options = /* @__PURE__ */ Object.create(null)
-) => {
+var parseBody = async (request, options = /* @__PURE__ */ Object.create(null)) => {
   const { all = false, dot = false } = options;
-  const headers =
-    request instanceof HonoRequest ? request.raw.headers : request.headers;
+  const headers = request instanceof HonoRequest ? request.raw.headers : request.headers;
   const contentType = headers.get("Content-Type");
-  if (
-    contentType?.startsWith("multipart/form-data") ||
-    contentType?.startsWith("application/x-www-form-urlencoded")
-  ) {
+  if (contentType?.startsWith("multipart/form-data") || contentType?.startsWith("application/x-www-form-urlencoded")) {
     return parseFormData(request, { all, dot });
   }
   return {};
@@ -483,12 +456,7 @@ var handleParsingNestedValues = (form, key, value) => {
     if (index === keys.length - 1) {
       nestedForm[key2] = value;
     } else {
-      if (
-        !nestedForm[key2] ||
-        typeof nestedForm[key2] !== "object" ||
-        Array.isArray(nestedForm[key2]) ||
-        nestedForm[key2] instanceof File
-      ) {
+      if (!nestedForm[key2] || typeof nestedForm[key2] !== "object" || Array.isArray(nestedForm[key2]) || nestedForm[key2] instanceof File) {
         nestedForm[key2] = /* @__PURE__ */ Object.create(null);
       }
       nestedForm = nestedForm[key2];
@@ -540,10 +508,7 @@ var getPattern = (label, next) => {
     const cacheKey = `${label}#${next}`;
     if (!patternCache[cacheKey]) {
       if (match[2]) {
-        patternCache[cacheKey] =
-          next && next[0] !== ":" && next[0] !== "*"
-            ? [cacheKey, match[1], new RegExp(`^${match[2]}(?=/${next})`)]
-            : [label, match[1], new RegExp(`^${match[2]}$`)];
+        patternCache[cacheKey] = next && next[0] !== ":" && next[0] !== "*" ? [cacheKey, match[1], new RegExp(`^${match[2]}(?=/${next})`)] : [label, match[1], new RegExp(`^${match[2]}$`)];
       } else {
         patternCache[cacheKey] = [label, match[1], true];
       }
@@ -575,9 +540,7 @@ var getPath = (request) => {
     if (charCode === 37) {
       const queryIndex = url.indexOf("?", i);
       const path = url.slice(start, queryIndex === -1 ? void 0 : queryIndex);
-      return tryDecodeURI(
-        path.includes("%25") ? path.replace(/%25/g, "%2525") : path
-      );
+      return tryDecodeURI(path.includes("%25") ? path.replace(/%25/g, "%2525") : path);
     } else if (charCode === 63) {
       break;
     }
@@ -586,9 +549,7 @@ var getPath = (request) => {
 };
 var getPathNoStrict = (request) => {
   const result = getPath(request);
-  return result.length > 1 && result.at(-1) === "/"
-    ? result.slice(0, -1)
-    : result;
+  return result.length > 1 && result.at(-1) === "/" ? result.slice(0, -1) : result;
 };
 var mergePath = (base, sub, ...rest) => {
   if (rest.length) {
@@ -644,9 +605,7 @@ var _getQueryParam = (url, key, multiple) => {
       if (trailingKeyCode === 61) {
         const valueIndex = keyIndex2 + key.length + 2;
         const endIndex = url.indexOf("&", valueIndex);
-        return _decodeURI(
-          url.slice(valueIndex, endIndex === -1 ? void 0 : endIndex)
-        );
+        return _decodeURI(url.slice(valueIndex, endIndex === -1 ? void 0 : endIndex));
       } else if (trailingKeyCode == 38 || isNaN(trailingKeyCode)) {
         return "";
       }
@@ -668,11 +627,7 @@ var _getQueryParam = (url, key, multiple) => {
     }
     let name = url.slice(
       keyIndex + 1,
-      valueIndex === -1
-        ? nextKeyIndex === -1
-          ? void 0
-          : nextKeyIndex
-        : valueIndex
+      valueIndex === -1 ? nextKeyIndex === -1 ? void 0 : nextKeyIndex : valueIndex
     );
     if (encoded) {
       name = _decodeURI(name);
@@ -685,10 +640,7 @@ var _getQueryParam = (url, key, multiple) => {
     if (valueIndex === -1) {
       value = "";
     } else {
-      value = url.slice(
-        valueIndex + 1,
-        nextKeyIndex === -1 ? void 0 : nextKeyIndex
-      );
+      value = url.slice(valueIndex + 1, nextKeyIndex === -1 ? void 0 : nextKeyIndex);
       if (encoded) {
         value = _decodeURI(value);
       }
@@ -731,19 +683,13 @@ var HonoRequest = class {
   #getDecodedParam(key) {
     const paramKey = this.#matchResult[0][this.routeIndex][1][key];
     const param = this.#getParamValue(paramKey);
-    return param
-      ? /\%/.test(param)
-        ? tryDecodeURIComponent(param)
-        : param
-      : void 0;
+    return param ? /\%/.test(param) ? tryDecodeURIComponent(param) : param : void 0;
   }
   #getAllDecodedParams() {
     const decoded = {};
     const keys = Object.keys(this.#matchResult[0][this.routeIndex][1]);
     for (const key of keys) {
-      const value = this.#getParamValue(
-        this.#matchResult[0][this.routeIndex][1][key]
-      );
+      const value = this.#getParamValue(this.#matchResult[0][this.routeIndex][1][key]);
       if (value && typeof value === "string") {
         decoded[key] = /\%/.test(value) ? tryDecodeURIComponent(value) : value;
       }
@@ -770,7 +716,7 @@ var HonoRequest = class {
     return headerData;
   }
   async parseBody(options) {
-    return (this.bodyCache.parsedBody ??= await parseBody(this, options));
+    return this.bodyCache.parsedBody ??= await parseBody(this, options);
   }
   #cachedBody = (key) => {
     const { bodyCache, raw } = this;
@@ -787,7 +733,7 @@ var HonoRequest = class {
         return new Response(body)[key]();
       });
     }
-    return (bodyCache[key] = raw[key]());
+    return bodyCache[key] = raw[key]();
   };
   json() {
     return this.#cachedBody("json");
@@ -820,8 +766,7 @@ var HonoRequest = class {
     return this.#matchResult[0].map(([[, route]]) => route);
   }
   get routePath() {
-    return this.#matchResult[0].map(([[, route]]) => route)[this.routeIndex]
-      .path;
+    return this.#matchResult[0].map(([[, route]]) => route)[this.routeIndex].path;
   }
 };
 
@@ -862,11 +807,7 @@ var Context = class {
     }
   }
   get req() {
-    this.#req ??= new HonoRequest(
-      this.#rawRequest,
-      this.#path,
-      this.#matchResult
-    );
+    this.#req ??= new HonoRequest(this.#rawRequest, this.#path, this.#matchResult);
     return this.#req;
   }
   get event() {
@@ -885,7 +826,7 @@ var Context = class {
   }
   get res() {
     this.#isFresh = false;
-    return (this.#res ||= new Response("404 Not Found", { status: 404 }));
+    return this.#res ||= new Response("404 Not Found", { status: 404 });
   }
   set res(_res) {
     this.#isFresh = false;
@@ -909,7 +850,7 @@ var Context = class {
         if (e instanceof TypeError && e.message.includes("immutable")) {
           this.res = new Response(_res.body, {
             headers: _res.headers,
-            status: _res.status,
+            status: _res.status
           });
           return;
         } else {
@@ -924,7 +865,7 @@ var Context = class {
     this.#renderer ??= (content) => this.html(content);
     return this.#renderer(...args);
   };
-  setLayout = (layout) => (this.#layout = layout);
+  setLayout = (layout) => this.#layout = layout;
   getLayout = () => this.#layout;
   setRenderer = (renderer) => {
     this.#renderer = renderer;
@@ -984,7 +925,7 @@ var Context = class {
   #newResponse(data, arg, headers) {
     if (this.#isFresh && !headers && !arg && this.#status === 200) {
       return new Response(data, {
-        headers: this.#preparedHeaders,
+        headers: this.#preparedHeaders
       });
     }
     if (arg && typeof arg !== "number") {
@@ -1001,7 +942,7 @@ var Context = class {
       const headers2 = setHeaders(header, this.#preparedHeaders);
       return new Response(data, {
         headers: headers2,
-        status: arg.status ?? this.#status,
+        status: arg.status ?? this.#status
       });
     }
     const status = typeof arg === "number" ? arg : this.#status;
@@ -1031,14 +972,12 @@ var Context = class {
     }
     return new Response(data, {
       status,
-      headers: this.#headers,
+      headers: this.#headers
     });
   }
   newResponse = (...args) => this.#newResponse(...args);
   body = (data, arg, headers) => {
-    return typeof arg === "number"
-      ? this.#newResponse(data, arg, headers)
-      : this.#newResponse(data, arg);
+    return typeof arg === "number" ? this.#newResponse(data, arg, headers) : this.#newResponse(data, arg);
   };
   text = (text, arg, headers) => {
     if (!this.#preparedHeaders) {
@@ -1057,28 +996,17 @@ var Context = class {
     const body = JSON.stringify(object);
     this.#preparedHeaders ??= {};
     this.#preparedHeaders["content-type"] = "application/json";
-    return typeof arg === "number"
-      ? this.#newResponse(body, arg, headers)
-      : this.#newResponse(body, arg);
+    return typeof arg === "number" ? this.#newResponse(body, arg, headers) : this.#newResponse(body, arg);
   };
   html = (html, arg, headers) => {
     this.#preparedHeaders ??= {};
     this.#preparedHeaders["content-type"] = "text/html; charset=UTF-8";
     if (typeof html === "object") {
-      return resolveCallback(
-        html,
-        HtmlEscapedCallbackPhase.Stringify,
-        false,
-        {}
-      ).then((html2) => {
-        return typeof arg === "number"
-          ? this.#newResponse(html2, arg, headers)
-          : this.#newResponse(html2, arg);
+      return resolveCallback(html, HtmlEscapedCallbackPhase.Stringify, false, {}).then((html2) => {
+        return typeof arg === "number" ? this.#newResponse(html2, arg, headers) : this.#newResponse(html2, arg);
       });
     }
-    return typeof arg === "number"
-      ? this.#newResponse(html, arg, headers)
-      : this.#newResponse(html, arg);
+    return typeof arg === "number" ? this.#newResponse(html, arg, headers) : this.#newResponse(html, arg);
   };
   redirect = (location, status) => {
     this.#headers ??= new Headers();
@@ -1095,9 +1023,9 @@ var Context = class {
 var METHOD_NAME_ALL = "ALL";
 var METHOD_NAME_ALL_LOWERCASE = "all";
 var METHODS = ["get", "post", "put", "delete", "options", "patch"];
-var MESSAGE_MATCHER_IS_ALREADY_BUILT =
-  "Can not add a route since the matcher is already built.";
-var UnsupportedPathError = class extends Error {};
+var MESSAGE_MATCHER_IS_ALREADY_BUILT = "Can not add a route since the matcher is already built.";
+var UnsupportedPathError = class extends Error {
+};
 
 // src/utils/constants.ts
 var COMPOSED_HANDLER = "__COMPOSED_HANDLER";
@@ -1168,13 +1096,12 @@ var Hono$1 = class Hono {
     };
     const { strict, ...optionsWithoutStrict } = options;
     Object.assign(this, optionsWithoutStrict);
-    this.getPath =
-      (strict ?? true) ? (options.getPath ?? getPath) : getPathNoStrict;
+    this.getPath = strict ?? true ? options.getPath ?? getPath : getPathNoStrict;
   }
   #clone() {
     const clone = new Hono$1({
       router: this.router,
-      getPath: this.getPath,
+      getPath: this.getPath
     });
     clone.routes = this.routes;
     return clone;
@@ -1188,9 +1115,7 @@ var Hono$1 = class Hono {
       if (app.errorHandler === errorHandler$1) {
         handler = r.handler;
       } else {
-        handler = async (c, next) =>
-          (await compose([], app.errorHandler)(c, () => r.handler(c, next)))
-            .res;
+        handler = async (c, next) => (await compose([], app.errorHandler)(c, () => r.handler(c, next))).res;
         handler[COMPOSED_HANDLER] = r.handler;
       }
       subApp.#addRoute(r.method, r.path, handler);
@@ -1221,18 +1146,17 @@ var Hono$1 = class Hono {
         replaceRequest = options.replaceRequest;
       }
     }
-    const getOptions = optionHandler
-      ? (c) => {
-          const options2 = optionHandler(c);
-          return Array.isArray(options2) ? options2 : [options2];
-        }
-      : (c) => {
-          let executionContext = void 0;
-          try {
-            executionContext = c.executionCtx;
-          } catch {}
-          return [c.env, executionContext];
-        };
+    const getOptions = optionHandler ? (c) => {
+      const options2 = optionHandler(c);
+      return Array.isArray(options2) ? options2 : [options2];
+    } : (c) => {
+      let executionContext = void 0;
+      try {
+        executionContext = c.executionCtx;
+      } catch {
+      }
+      return [c.env, executionContext];
+    };
     replaceRequest ||= (() => {
       const mergedPath = mergePath(this._basePath, path);
       const pathPrefixLength = mergedPath === "/" ? 0 : mergedPath.length;
@@ -1243,10 +1167,7 @@ var Hono$1 = class Hono {
       };
     })();
     const handler = async (c, next) => {
-      const res = await applicationHandler(
-        replaceRequest(c.req.raw),
-        ...getOptions(c)
-      );
+      const res = await applicationHandler(replaceRequest(c.req.raw), ...getOptions(c));
       if (res) {
         return res;
       }
@@ -1270,11 +1191,7 @@ var Hono$1 = class Hono {
   }
   #dispatch(request, executionCtx, env, method) {
     if (method === "HEAD") {
-      return (async () =>
-        new Response(
-          null,
-          await this.#dispatch(request, executionCtx, env, "GET")
-        ))();
+      return (async () => new Response(null, await this.#dispatch(request, executionCtx, env, "GET")))();
     }
     const path = this.getPath(request, { env });
     const matchResult = this.router.match(method, path);
@@ -1283,7 +1200,7 @@ var Hono$1 = class Hono {
       matchResult,
       env,
       executionCtx,
-      notFoundHandler: this.#notFoundHandler,
+      notFoundHandler: this.#notFoundHandler
     });
     if (matchResult[0].length === 1) {
       let res;
@@ -1294,20 +1211,11 @@ var Hono$1 = class Hono {
       } catch (err) {
         return this.#handleError(err, c);
       }
-      return res instanceof Promise
-        ? res
-            .then(
-              (resolved) =>
-                resolved || (c.finalized ? c.res : this.#notFoundHandler(c))
-            )
-            .catch((err) => this.#handleError(err, c))
-        : (res ?? this.#notFoundHandler(c));
+      return res instanceof Promise ? res.then(
+        (resolved) => resolved || (c.finalized ? c.res : this.#notFoundHandler(c))
+      ).catch((err) => this.#handleError(err, c)) : res ?? this.#notFoundHandler(c);
     }
-    const composed = compose(
-      matchResult[0],
-      this.errorHandler,
-      this.#notFoundHandler
-    );
+    const composed = compose(matchResult[0], this.errorHandler, this.#notFoundHandler);
     return (async () => {
       try {
         const context = await composed(c);
@@ -1327,18 +1235,12 @@ var Hono$1 = class Hono {
   };
   request = (input, requestInit, Env, executionCtx) => {
     if (input instanceof Request) {
-      return this.fetch(
-        requestInit ? new Request(input, requestInit) : input,
-        Env,
-        executionCtx
-      );
+      return this.fetch(requestInit ? new Request(input, requestInit) : input, Env, executionCtx);
     }
     input = input.toString();
     return this.fetch(
       new Request(
-        /^https?:\/\//.test(input)
-          ? input
-          : `http://localhost${mergePath("/", input)}`,
+        /^https?:\/\//.test(input) ? input : `http://localhost${mergePath("/", input)}`,
         requestInit
       ),
       Env,
@@ -1347,9 +1249,7 @@ var Hono$1 = class Hono {
   };
   fire = () => {
     addEventListener("fetch", (event) => {
-      event.respondWith(
-        this.#dispatch(event.request, event, void 0, event.request.method)
-      );
+      event.respondWith(this.#dispatch(event.request, event, void 0, event.request.method));
     });
   };
 };
@@ -1362,17 +1262,14 @@ var PATH_ERROR = Symbol();
 var regExpMetaChars = new Set(".\\+*[^]$()");
 function compareKey(a, b) {
   if (a.length === 1) {
-    return b.length === 1 ? (a < b ? -1 : 1) : -1;
+    return b.length === 1 ? a < b ? -1 : 1 : -1;
   }
   if (b.length === 1) {
     return 1;
   }
   if (a === ONLY_WILDCARD_REG_EXP_STR || a === TAIL_WILDCARD_REG_EXP_STR) {
     return 1;
-  } else if (
-    b === ONLY_WILDCARD_REG_EXP_STR ||
-    b === TAIL_WILDCARD_REG_EXP_STR
-  ) {
+  } else if (b === ONLY_WILDCARD_REG_EXP_STR || b === TAIL_WILDCARD_REG_EXP_STR) {
     return -1;
   }
   if (a === LABEL_REG_EXP_STR) {
@@ -1380,7 +1277,7 @@ function compareKey(a, b) {
   } else if (b === LABEL_REG_EXP_STR) {
     return -1;
   }
-  return a.length === b.length ? (a < b ? -1 : 1) : b.length - a.length;
+  return a.length === b.length ? a < b ? -1 : 1 : b.length - a.length;
 }
 var Node$1 = class Node {
   #index;
@@ -1398,14 +1295,7 @@ var Node$1 = class Node {
       return;
     }
     const [token, ...restTokens] = tokens;
-    const pattern =
-      token === "*"
-        ? restTokens.length === 0
-          ? ["", "", ONLY_WILDCARD_REG_EXP_STR]
-          : ["", "", LABEL_REG_EXP_STR]
-        : token === "/*"
-          ? ["", "", TAIL_WILDCARD_REG_EXP_STR]
-          : token.match(/^\:([^\{\}]+)(?:\{(.+)\})?$/);
+    const pattern = token === "*" ? restTokens.length === 0 ? ["", "", ONLY_WILDCARD_REG_EXP_STR] : ["", "", LABEL_REG_EXP_STR] : token === "/*" ? ["", "", TAIL_WILDCARD_REG_EXP_STR] : token.match(/^\:([^\{\}]+)(?:\{(.+)\})?$/);
     let node;
     if (pattern) {
       const name = pattern[1];
@@ -1418,12 +1308,9 @@ var Node$1 = class Node {
       }
       node = this.#children[regexpStr];
       if (!node) {
-        if (
-          Object.keys(this.#children).some(
-            (k) =>
-              k !== ONLY_WILDCARD_REG_EXP_STR && k !== TAIL_WILDCARD_REG_EXP_STR
-          )
-        ) {
+        if (Object.keys(this.#children).some(
+          (k) => k !== ONLY_WILDCARD_REG_EXP_STR && k !== TAIL_WILDCARD_REG_EXP_STR
+        )) {
           throw PATH_ERROR;
         }
         if (pathErrorCheckOnly) {
@@ -1440,14 +1327,9 @@ var Node$1 = class Node {
     } else {
       node = this.#children[token];
       if (!node) {
-        if (
-          Object.keys(this.#children).some(
-            (k) =>
-              k.length > 1 &&
-              k !== ONLY_WILDCARD_REG_EXP_STR &&
-              k !== TAIL_WILDCARD_REG_EXP_STR
-          )
-        ) {
+        if (Object.keys(this.#children).some(
+          (k) => k.length > 1 && k !== ONLY_WILDCARD_REG_EXP_STR && k !== TAIL_WILDCARD_REG_EXP_STR
+        )) {
           throw PATH_ERROR;
         }
         if (pathErrorCheckOnly) {
@@ -1462,13 +1344,7 @@ var Node$1 = class Node {
     const childKeys = Object.keys(this.#children).sort(compareKey);
     const strList = childKeys.map((k) => {
       const c = this.#children[k];
-      return (
-        (typeof c.#varIndex === "number"
-          ? `(${k})@${c.#varIndex}`
-          : regExpMetaChars.has(k)
-            ? `\\${k}`
-            : k) + c.buildRegExpStr()
-      );
+      return (typeof c.#varIndex === "number" ? `(${k})@${c.#varIndex}` : regExpMetaChars.has(k) ? `\\${k}` : k) + c.buildRegExpStr();
     });
     if (typeof this.#index === "number") {
       strList.unshift(`#${this.#index}`);
@@ -1513,13 +1389,7 @@ var Trie = class {
         }
       }
     }
-    this.#root.insert(
-      tokens,
-      index,
-      paramAssoc,
-      this.#context,
-      pathErrorCheckOnly
-    );
+    this.#root.insert(tokens, index, paramAssoc, this.#context, pathErrorCheckOnly);
     return paramAssoc;
   }
   buildRegExp() {
@@ -1530,20 +1400,17 @@ var Trie = class {
     let captureIndex = 0;
     const indexReplacementMap = [];
     const paramReplacementMap = [];
-    regexp = regexp.replace(
-      /#(\d+)|@(\d+)|\.\*\$/g,
-      (_, handlerIndex, paramIndex) => {
-        if (handlerIndex !== void 0) {
-          indexReplacementMap[++captureIndex] = Number(handlerIndex);
-          return "$()";
-        }
-        if (paramIndex !== void 0) {
-          paramReplacementMap[Number(paramIndex)] = ++captureIndex;
-          return "";
-        }
+    regexp = regexp.replace(/#(\d+)|@(\d+)|\.\*\$/g, (_, handlerIndex, paramIndex) => {
+      if (handlerIndex !== void 0) {
+        indexReplacementMap[++captureIndex] = Number(handlerIndex);
+        return "$()";
+      }
+      if (paramIndex !== void 0) {
+        paramReplacementMap[Number(paramIndex)] = ++captureIndex;
         return "";
       }
-    );
+      return "";
+    });
     return [new RegExp(`^${regexp}`), indexReplacementMap, paramReplacementMap];
   }
 };
@@ -1553,13 +1420,12 @@ var emptyParam = [];
 var nullMatcher = [/^$/, [], /* @__PURE__ */ Object.create(null)];
 var wildcardRegExpCache = /* @__PURE__ */ Object.create(null);
 function buildWildcardRegExp(path) {
-  return (wildcardRegExpCache[path] ??= new RegExp(
-    path === "*"
-      ? ""
-      : `^${path.replace(/\/\*$|([.\\+*[^\]$()])/g, (_, metaChar) =>
-          metaChar ? `\\${metaChar}` : "(?:|/.*)"
-        )}$`
-  ));
+  return wildcardRegExpCache[path] ??= new RegExp(
+    path === "*" ? "" : `^${path.replace(
+      /\/\*$|([.\\+*[^\]$()])/g,
+      (_, metaChar) => metaChar ? `\\${metaChar}` : "(?:|/.*)"
+    )}$`
+  );
 }
 function clearWildcardRegExpCache() {
   wildcardRegExpCache = /* @__PURE__ */ Object.create(null);
@@ -1570,19 +1436,16 @@ function buildMatcherFromPreprocessedRoutes(routes) {
   if (routes.length === 0) {
     return nullMatcher;
   }
-  const routesWithStaticPathFlag = routes
-    .map((route) => [!/\*|\/:/.test(route[0]), ...route])
-    .sort(([isStaticA, pathA], [isStaticB, pathB]) =>
-      isStaticA ? 1 : isStaticB ? -1 : pathA.length - pathB.length
-    );
+  const routesWithStaticPathFlag = routes.map(
+    (route) => [!/\*|\/:/.test(route[0]), ...route]
+  ).sort(
+    ([isStaticA, pathA], [isStaticB, pathB]) => isStaticA ? 1 : isStaticB ? -1 : pathA.length - pathB.length
+  );
   const staticMap = /* @__PURE__ */ Object.create(null);
   for (let i = 0, j = -1, len = routesWithStaticPathFlag.length; i < len; i++) {
     const [pathErrorCheckOnly, path, handlers] = routesWithStaticPathFlag[i];
     if (pathErrorCheckOnly) {
-      staticMap[path] = [
-        handlers.map(([h]) => [h, /* @__PURE__ */ Object.create(null)]),
-        emptyParam,
-      ];
+      staticMap[path] = [handlers.map(([h]) => [h, /* @__PURE__ */ Object.create(null)]), emptyParam];
     } else {
       j++;
     }
@@ -1640,9 +1503,7 @@ var RegExpRouter = class {
   #middleware;
   #routes;
   constructor() {
-    this.#middleware = {
-      [METHOD_NAME_ALL]: /* @__PURE__ */ Object.create(null),
-    };
+    this.#middleware = { [METHOD_NAME_ALL]: /* @__PURE__ */ Object.create(null) };
     this.#routes = { [METHOD_NAME_ALL]: /* @__PURE__ */ Object.create(null) };
   }
   add(method, path, handler) {
@@ -1667,16 +1528,10 @@ var RegExpRouter = class {
       const re = buildWildcardRegExp(path);
       if (method === METHOD_NAME_ALL) {
         Object.keys(middleware).forEach((m) => {
-          middleware[m][path] ||=
-            findMiddleware(middleware[m], path) ||
-            findMiddleware(middleware[METHOD_NAME_ALL], path) ||
-            [];
+          middleware[m][path] ||= findMiddleware(middleware[m], path) || findMiddleware(middleware[METHOD_NAME_ALL], path) || [];
         });
       } else {
-        middleware[method][path] ||=
-          findMiddleware(middleware[method], path) ||
-          findMiddleware(middleware[METHOD_NAME_ALL], path) ||
-          [];
+        middleware[method][path] ||= findMiddleware(middleware[method], path) || findMiddleware(middleware[METHOD_NAME_ALL], path) || [];
       }
       Object.keys(middleware).forEach((m) => {
         if (method === METHOD_NAME_ALL || method === m) {
@@ -1700,9 +1555,7 @@ var RegExpRouter = class {
       Object.keys(routes).forEach((m) => {
         if (method === METHOD_NAME_ALL || method === m) {
           routes[m][path2] ||= [
-            ...(findMiddleware(middleware[m], path2) ||
-              findMiddleware(middleware[METHOD_NAME_ALL], path2) ||
-              []),
+            ...findMiddleware(middleware[m], path2) || findMiddleware(middleware[METHOD_NAME_ALL], path2) || []
           ];
           routes[m][path2].push([handler, paramCount - len + i + 1]);
         }
@@ -1729,11 +1582,9 @@ var RegExpRouter = class {
   }
   #buildAllMatchers() {
     const matchers = /* @__PURE__ */ Object.create(null);
-    Object.keys(this.#routes)
-      .concat(Object.keys(this.#middleware))
-      .forEach((method) => {
-        matchers[method] ||= this.#buildMatcher(method);
-      });
+    Object.keys(this.#routes).concat(Object.keys(this.#middleware)).forEach((method) => {
+      matchers[method] ||= this.#buildMatcher(method);
+    });
     this.#middleware = this.#routes = void 0;
     return matchers;
   }
@@ -1741,18 +1592,13 @@ var RegExpRouter = class {
     const routes = [];
     let hasOwnRoute = method === METHOD_NAME_ALL;
     [this.#middleware, this.#routes].forEach((r) => {
-      const ownRoute = r[method]
-        ? Object.keys(r[method]).map((path) => [path, r[method][path]])
-        : [];
+      const ownRoute = r[method] ? Object.keys(r[method]).map((path) => [path, r[method][path]]) : [];
       if (ownRoute.length !== 0) {
         hasOwnRoute ||= true;
         routes.push(...ownRoute);
       } else if (method !== METHOD_NAME_ALL) {
         routes.push(
-          ...Object.keys(r[METHOD_NAME_ALL]).map((path) => [
-            path,
-            r[METHOD_NAME_ALL][path],
-          ])
+          ...Object.keys(r[METHOD_NAME_ALL]).map((path) => [path, r[METHOD_NAME_ALL][path]])
         );
       }
     });
@@ -1866,7 +1712,7 @@ var Node = class {
     const handlerSet = {
       handler,
       possibleKeys: possibleKeys.filter((v, i, a) => a.indexOf(v) === i),
-      score: this.#order,
+      score: this.#order
     };
     m[method] = handlerSet;
     curNode.#methods.push(m);
@@ -1881,18 +1727,11 @@ var Node = class {
       if (handlerSet !== void 0) {
         handlerSet.params = /* @__PURE__ */ Object.create(null);
         handlerSets.push(handlerSet);
-        if (nodeParams !== emptyParams || (params && params !== emptyParams)) {
-          for (
-            let i2 = 0, len2 = handlerSet.possibleKeys.length;
-            i2 < len2;
-            i2++
-          ) {
+        if (nodeParams !== emptyParams || params && params !== emptyParams) {
+          for (let i2 = 0, len2 = handlerSet.possibleKeys.length; i2 < len2; i2++) {
             const key = handlerSet.possibleKeys[i2];
             const processed = processedSet[handlerSet.score];
-            handlerSet.params[key] =
-              params?.[key] && !processed
-                ? params[key]
-                : (nodeParams[key] ?? params?.[key]);
+            handlerSet.params[key] = params?.[key] && !processed ? params[key] : nodeParams[key] ?? params?.[key];
             processedSet[handlerSet.score] = true;
           }
         }
@@ -1919,30 +1758,21 @@ var Node = class {
           if (isLast) {
             if (nextNode.#children["*"]) {
               handlerSets.push(
-                ...this.#getHandlerSets(
-                  nextNode.#children["*"],
-                  method,
-                  node.#params
-                )
+                ...this.#getHandlerSets(nextNode.#children["*"], method, node.#params)
               );
             }
-            handlerSets.push(
-              ...this.#getHandlerSets(nextNode, method, node.#params)
-            );
+            handlerSets.push(...this.#getHandlerSets(nextNode, method, node.#params));
           } else {
             tempNodes.push(nextNode);
           }
         }
         for (let k = 0, len3 = node.#patterns.length; k < len3; k++) {
           const pattern = node.#patterns[k];
-          const params =
-            node.#params === emptyParams ? {} : { ...node.#params };
+          const params = node.#params === emptyParams ? {} : { ...node.#params };
           if (pattern === "*") {
             const astNode = node.#children["*"];
             if (astNode) {
-              handlerSets.push(
-                ...this.#getHandlerSets(astNode, method, node.#params)
-              );
+              handlerSets.push(...this.#getHandlerSets(astNode, method, node.#params));
               astNode.#params = params;
               tempNodes.push(astNode);
             }
@@ -1958,13 +1788,11 @@ var Node = class {
             const m = matcher.exec(restPathString);
             if (m) {
               params[name] = m[0];
-              handlerSets.push(
-                ...this.#getHandlerSets(child, method, node.#params, params)
-              );
+              handlerSets.push(...this.#getHandlerSets(child, method, node.#params, params));
               if (Object.keys(child.#children).length) {
                 child.#params = params;
                 const componentCount = m[0].match(/\//)?.length ?? 0;
-                const targetCurNodes = (curNodesQueue[componentCount] ||= []);
+                const targetCurNodes = curNodesQueue[componentCount] ||= [];
                 targetCurNodes.push(child);
               }
               continue;
@@ -1973,17 +1801,10 @@ var Node = class {
           if (matcher === true || matcher.test(part)) {
             params[name] = part;
             if (isLast) {
-              handlerSets.push(
-                ...this.#getHandlerSets(child, method, params, node.#params)
-              );
+              handlerSets.push(...this.#getHandlerSets(child, method, params, node.#params));
               if (child.#children["*"]) {
                 handlerSets.push(
-                  ...this.#getHandlerSets(
-                    child.#children["*"],
-                    method,
-                    params,
-                    node.#params
-                  )
+                  ...this.#getHandlerSets(child.#children["*"], method, params, node.#params)
                 );
               }
             } else {
@@ -2030,11 +1851,9 @@ var TrieRouter = class {
 var Hono = class extends Hono$1 {
   constructor(options = {}) {
     super(options);
-    this.router =
-      options.router ??
-      new SmartRouter({
-        routers: [new RegExpRouter(), new TrieRouter()],
-      });
+    this.router = options.router ?? new SmartRouter({
+      routers: [new RegExpRouter(), new TrieRouter()]
+    });
   }
 };
 
@@ -2051,12 +1870,12 @@ var HTTPException = class extends Error {
     if (this.res) {
       const newResponse = new Response(this.res.body, {
         status: this.status,
-        headers: this.res.headers,
+        headers: this.res.headers
       });
       return newResponse;
     }
     return new Response(this.message, {
-      status: this.status,
+      status: this.status
     });
   }
 };
@@ -2070,24 +1889,19 @@ var BodyLimitError = class extends Error {
   }
 };
 var bodyLimit = (options) => {
-  const onError =
-    options.onError ||
-    (() => {
-      const res = new Response(ERROR_MESSAGE, {
-        status: 413,
-      });
-      throw new HTTPException(413, { res });
+  const onError = options.onError || (() => {
+    const res = new Response(ERROR_MESSAGE, {
+      status: 413
     });
+    throw new HTTPException(413, { res });
+  });
   const maxSize = options.maxSize;
   return async function bodyLimit2(c, next) {
     if (!c.req.raw.body) {
       return next();
     }
     if (c.req.raw.headers.has("content-length")) {
-      const contentLength = parseInt(
-        c.req.raw.headers.get("content-length") || "0",
-        10
-      );
+      const contentLength = parseInt(c.req.raw.headers.get("content-length") || "0", 10);
       return contentLength > maxSize ? onError(c) : next();
     }
     let size = 0;
@@ -2095,7 +1909,7 @@ var bodyLimit = (options) => {
     const reader = new ReadableStream({
       async start(controller) {
         try {
-          for (;;) {
+          for (; ; ) {
             const { done, value } = await rawReader.read();
             if (done) {
               break;
@@ -2110,7 +1924,7 @@ var bodyLimit = (options) => {
         } finally {
           controller.close();
         }
-      },
+      }
     });
     const requestInit = { body: reader, duplex: "half" };
     c.req.raw = new Request(c.req.raw, requestInit);
@@ -2127,23 +1941,23 @@ var cors = (options) => {
     origin: "*",
     allowMethods: ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"],
     allowHeaders: [],
-    exposeHeaders: [],
+    exposeHeaders: []
   };
   const opts = {
     ...defaults,
-    ...options,
+    ...options
   };
   const findAllowOrigin = ((optsOrigin) => {
     if (typeof optsOrigin === "string") {
       if (optsOrigin === "*") {
         return () => optsOrigin;
       } else {
-        return (origin) => (optsOrigin === origin ? origin : null);
+        return (origin) => optsOrigin === origin ? origin : null;
       }
     } else if (typeof optsOrigin === "function") {
       return optsOrigin;
     } else {
-      return (origin) => (optsOrigin.includes(origin) ? origin : null);
+      return (origin) => optsOrigin.includes(origin) ? origin : null;
     }
   })(opts.origin);
   return async function cors2(c, next) {
@@ -2191,7 +2005,7 @@ var cors = (options) => {
       return new Response(null, {
         headers: c.res.headers,
         status: 204,
-        statusText: "No Content",
+        statusText: "No Content"
       });
     }
     await next();
@@ -2201,21 +2015,14 @@ var cors = (options) => {
 // src/utils/color.ts
 function getColorEnabled() {
   const { process, Deno } = globalThis;
-  const isNoColor =
-    typeof Deno?.noColor === "boolean"
-      ? Deno.noColor
-      : process !== void 0
-        ? "NO_COLOR" in process?.env
-        : false;
+  const isNoColor = typeof Deno?.noColor === "boolean" ? Deno.noColor : process !== void 0 ? "NO_COLOR" in process?.env : false;
   return !isNoColor;
 }
 
 // src/middleware/logger/index.ts
 var humanize = (times) => {
   const [delimiter, separator] = [",", "."];
-  const orderTimes = times.map((v) =>
-    v.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1" + delimiter)
-  );
+  const orderTimes = times.map((v) => v.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1" + delimiter));
   return orderTimes.join(separator);
 };
 var time = (start) => {
@@ -2225,7 +2032,7 @@ var time = (start) => {
 var colorStatus = (status) => {
   const colorEnabled = getColorEnabled();
   if (colorEnabled) {
-    switch ((status / 100) | 0) {
+    switch (status / 100 | 0) {
       case 5:
         return `\x1B[31m${status}\x1B[0m`;
       case 4:
@@ -2239,10 +2046,7 @@ var colorStatus = (status) => {
   return `${status}`;
 };
 function log(fn, prefix, method, path, status = 0, elapsed) {
-  const out =
-    prefix === "<--" /* Incoming */
-      ? `${prefix} ${method} ${path}`
-      : `${prefix} ${method} ${path} ${colorStatus(status)} ${elapsed}`;
+  const out = prefix === "<--" /* Incoming */ ? `${prefix} ${method} ${path}` : `${prefix} ${method} ${path} ${colorStatus(status)} ${elapsed}`;
   fn(out);
 }
 var logger = (fn = console.log) => {
@@ -2280,7 +2084,7 @@ var StreamingApi = class {
       },
       cancel: () => {
         this.abort();
-      },
+      }
     });
   }
   async write(input) {
@@ -2289,7 +2093,8 @@ var StreamingApi = class {
         input = this.encoder.encode(input);
       }
       await this.writer.write(input);
-    } catch {}
+    } catch {
+    }
     return this;
   }
   async writeln(input) {
@@ -2302,7 +2107,8 @@ var StreamingApi = class {
   async close() {
     try {
       await this.writer.close();
-    } catch {}
+    } catch {
+    }
     this.closed = true;
   }
   async pipe(body) {
@@ -2327,10 +2133,7 @@ var isOldBunVersion = () => {
   if (version === void 0) {
     return false;
   }
-  const result =
-    version.startsWith("1.1") ||
-    version.startsWith("1.0") ||
-    version.startsWith("0.");
+  const result = version.startsWith("1.1") || version.startsWith("1.0") || version.startsWith("0.");
   isOldBunVersion = () => result;
   return result;
 };
@@ -2352,8 +2155,7 @@ var stream = (c, cb, onError) => {
     try {
       await cb(stream2);
     } catch (e) {
-      if (e === void 0);
-      else if (e instanceof Error && onError) {
+      if (e === void 0) ; else if (e instanceof Error && onError) {
         await onError(e, stream2);
       } else {
         console.error(e);
@@ -2403,14 +2205,15 @@ var newRequestFromIncoming = (method, url, incoming, abortController) => {
   const rawHeaders = incoming.rawHeaders;
   for (let i2 = 0; i2 < rawHeaders.length; i2 += 2) {
     const { [i2]: key, [i2 + 1]: value } = rawHeaders;
-    if (key.charCodeAt(0) /*:*/ !== 58) {
+    if (key.charCodeAt(0) !== /*:*/
+    58) {
       headerRecord.push([key, value]);
     }
   }
   const init = {
     method,
     headers: headerRecord,
-    signal: abortController.signal,
+    signal: abortController.signal
   };
   if (method === "TRACE") {
     init.method = "GET";
@@ -2418,7 +2221,7 @@ var newRequestFromIncoming = (method, url, incoming, abortController) => {
     Object.defineProperty(req, "method", {
       get() {
         return "TRACE";
-      },
+      }
     });
     return req;
   }
@@ -2428,7 +2231,7 @@ var newRequestFromIncoming = (method, url, incoming, abortController) => {
         start(controller) {
           controller.enqueue(incoming.rawBody);
           controller.close();
-        },
+        }
       });
     } else {
       init.body = Readable.toWeb(incoming);
@@ -2455,13 +2258,13 @@ var requestPrototype = {
   },
   [getRequestCache]() {
     this[abortControllerKey] ||= new AbortController();
-    return (this[requestCache] ||= newRequestFromIncoming(
+    return this[requestCache] ||= newRequestFromIncoming(
       this.method,
       this[urlKey],
       this[incomingKey],
       this[abortControllerKey]
-    ));
-  },
+    );
+  }
 };
 [
   "body",
@@ -2476,39 +2279,33 @@ var requestPrototype = {
   "referrer",
   "referrerPolicy",
   "signal",
-  "keepalive",
+  "keepalive"
 ].forEach((k) => {
   Object.defineProperty(requestPrototype, k, {
     get() {
       return this[getRequestCache]()[k];
-    },
+    }
   });
 });
 ["arrayBuffer", "blob", "clone", "formData", "json", "text"].forEach((k) => {
   Object.defineProperty(requestPrototype, k, {
-    value: function () {
+    value: function() {
       return this[getRequestCache]()[k]();
-    },
+    }
   });
 });
 Object.setPrototypeOf(requestPrototype, Request$1.prototype);
 var newRequest = (incoming, defaultHostname) => {
   const req = Object.create(requestPrototype);
   req[incomingKey] = incoming;
-  const host =
-    (incoming instanceof Http2ServerRequest
-      ? incoming.authority
-      : incoming.headers.host) || defaultHostname;
+  const host = (incoming instanceof Http2ServerRequest ? incoming.authority : incoming.headers.host) || defaultHostname;
   if (!host) {
     throw new RequestError("Missing host header");
   }
   const url = new URL(
-    `${incoming instanceof Http2ServerRequest || (incoming.socket && incoming.socket.encrypted) ? "https" : "http"}://${host}${incoming.url}`
+    `${incoming instanceof Http2ServerRequest || incoming.socket && incoming.socket.encrypted ? "https" : "http"}://${host}${incoming.url}`
   );
-  if (
-    url.hostname.length !== host.length &&
-    url.hostname !== host.replace(/:\d+$/, "")
-  ) {
+  if (url.hostname.length !== host.length && url.hostname !== host.replace(/:\d+$/, "")) {
     throw new RequestError("Invalid host header");
   }
   req[urlKey] = url.href;
@@ -2530,7 +2327,8 @@ function writeFromReadableStream(stream, writable) {
     writable.off("error", cancel);
   });
   function cancel(error) {
-    reader.cancel(error).catch(() => {});
+    reader.cancel(error).catch(() => {
+    });
     if (error) {
       writable.destroy(error);
     }
@@ -2580,7 +2378,7 @@ var Response2 = class _Response {
   #init;
   [getResponseCache]() {
     delete this[cacheKey];
-    return (this[responseCache] ||= new GlobalResponse(this.#body, this.#init));
+    return this[responseCache] ||= new GlobalResponse(this.#body, this.#init);
   }
   constructor(body, init) {
     this.#body = body;
@@ -2597,9 +2395,7 @@ var Response2 = class _Response {
       this.#init = init;
     }
     if (typeof body === "string" || typeof body?.getReader !== "undefined") {
-      let headers = init?.headers || {
-        "content-type": "text/plain; charset=UTF-8",
-      };
+      let headers = init?.headers || { "content-type": "text/plain; charset=UTF-8" };
       if (headers instanceof Headers) {
         headers = buildOutgoingHttpHeaders(headers);
       }
@@ -2617,19 +2413,19 @@ var Response2 = class _Response {
   "statusText",
   "trailers",
   "type",
-  "url",
+  "url"
 ].forEach((k) => {
   Object.defineProperty(Response2.prototype, k, {
     get() {
       return this[getResponseCache]()[k];
-    },
+    }
   });
 });
 ["arrayBuffer", "blob", "clone", "formData", "json", "text"].forEach((k) => {
   Object.defineProperty(Response2.prototype, k, {
-    value: function () {
+    value: function() {
       return this[getResponseCache]()[k]();
-    },
+    }
   });
 });
 Object.setPrototypeOf(Response2, GlobalResponse);
@@ -2648,7 +2444,7 @@ function getInternalBody(response) {
     response = response[getResponseCache]();
   }
   const state = response[stateKey];
-  return (state && state.body) || void 0;
+  return state && state.body || void 0;
 }
 var X_ALREADY_SENT = "x-hono-already-sent";
 var webFetch = global.fetch;
@@ -2660,27 +2456,20 @@ global.fetch = (info, init) => {
     // Disable compression handling so people can return the result of a fetch
     // directly in the loader without messing with the Content-Encoding header.
     compress: false,
-    ...init,
+    ...init
   };
   return webFetch(info, init);
 };
 var regBuffer = /^no$/i;
 var regContentType = /^(application\/json\b|text\/(?!event-stream\b))/i;
-var handleRequestError = () =>
-  new Response(null, {
-    status: 400,
-  });
-var handleFetchError = (e2) =>
-  new Response(null, {
-    status:
-      e2 instanceof Error &&
-      (e2.name === "TimeoutError" || e2.constructor.name === "TimeoutError")
-        ? 504
-        : 500,
-  });
+var handleRequestError = () => new Response(null, {
+  status: 400
+});
+var handleFetchError = (e2) => new Response(null, {
+  status: e2 instanceof Error && (e2.name === "TimeoutError" || e2.constructor.name === "TimeoutError") ? 504 : 500
+});
 var handleResponseError = (e2, outgoing) => {
-  const err =
-    e2 instanceof Error ? e2 : new Error("unknown error", { cause: e2 });
+  const err = e2 instanceof Error ? e2 : new Error("unknown error", { cause: e2 });
   if (err.code === "ERR_STREAM_PREMATURE_CLOSE") {
     console.info("The user aborted a request.");
   } else {
@@ -2700,8 +2489,8 @@ var responseViaCache = (res, outgoing) => {
     outgoing.end(body);
   } else {
     outgoing.writeHead(status, header);
-    return writeFromReadableStream(body, outgoing)?.catch((e2) =>
-      handleResponseError(e2, outgoing)
+    return writeFromReadableStream(body, outgoing)?.catch(
+      (e2) => handleResponseError(e2, outgoing)
     );
   }
 };
@@ -2728,8 +2517,7 @@ var responseViaResponseObject = async (res, outgoing, options = {}) => {
   const internalBody = getInternalBody(res);
   if (internalBody) {
     const { length, source, stream } = internalBody;
-    if (source instanceof Uint8Array && source.byteLength !== length);
-    else {
+    if (source instanceof Uint8Array && source.byteLength !== length) ; else {
       if (length) {
         resHeaderRecord["content-length"] = length;
       }
@@ -2750,15 +2538,10 @@ var responseViaResponseObject = async (res, outgoing, options = {}) => {
       "content-encoding": contentEncoding,
       "content-length": contentLength,
       "x-accel-buffering": accelBuffering,
-      "content-type": contentType,
+      "content-type": contentType
     } = resHeaderRecord;
-    if (
-      transferEncoding ||
-      contentEncoding ||
-      contentLength || // nginx buffering variant
-      (accelBuffering && regBuffer.test(accelBuffering)) ||
-      !regContentType.test(contentType)
-    ) {
+    if (transferEncoding || contentEncoding || contentLength || // nginx buffering variant
+    accelBuffering && regBuffer.test(accelBuffering) || !regContentType.test(contentType)) {
       outgoing.writeHead(res.status, resHeaderRecord);
       await writeFromReadableStream(res.body, outgoing);
     } else {
@@ -2767,8 +2550,7 @@ var responseViaResponseObject = async (res, outgoing, options = {}) => {
       outgoing.writeHead(res.status, resHeaderRecord);
       outgoing.end(new Uint8Array(buffer));
     }
-  } else if (resHeaderRecord[X_ALREADY_SENT]);
-  else {
+  } else if (resHeaderRecord[X_ALREADY_SENT]) ; else {
     outgoing.writeHead(res.status, resHeaderRecord);
     outgoing.end();
   }
@@ -2776,10 +2558,10 @@ var responseViaResponseObject = async (res, outgoing, options = {}) => {
 var getRequestListener = (fetchCallback, options = {}) => {
   if (options.overrideGlobalObjects !== false && global.Request !== Request$1) {
     Object.defineProperty(global, "Request", {
-      value: Request$1,
+      value: Request$1
     });
     Object.defineProperty(global, "Response", {
-      value: Response2,
+      value: Response2
     });
   }
   return async (incoming, outgoing) => {
@@ -2794,9 +2576,7 @@ var getRequestListener = (fetchCallback, options = {}) => {
         if (incoming.errored) {
           req[abortControllerKey].abort(incoming.errored.toString());
         } else if (!outgoing.writableFinished) {
-          req[abortControllerKey].abort(
-            "Client connection prematurely closed."
-          );
+          req[abortControllerKey].abort("Client connection prematurely closed.");
         }
       });
       res = fetchCallback(req, { incoming, outgoing });
@@ -2830,7 +2610,7 @@ var createAdaptorServer = (options) => {
   const fetchCallback = options.fetch;
   const requestListener = getRequestListener(fetchCallback, {
     hostname: options.hostname,
-    overrideGlobalObjects: options.overrideGlobalObjects,
+    overrideGlobalObjects: options.overrideGlobalObjects
   });
   const createServer$1 = options.createServer || createServer;
   const server = createServer$1(options.serverOptions || {}, requestListener);
@@ -2844,12 +2624,11 @@ var serve = (options, listeningListener) => {
   });
   return server;
 };
-var COMPRESSIBLE_CONTENT_TYPE_REGEX =
-  /^\s*(?:text\/[^;\s]+|application\/(?:javascript|json|xml|xml-dtd|ecmascript|dart|postscript|rtf|tar|toml|vnd\.dart|vnd\.ms-fontobject|vnd\.ms-opentype|wasm|x-httpd-php|x-javascript|x-ns-proxy-autoconfig|x-sh|x-tar|x-virtualbox-hdd|x-virtualbox-ova|x-virtualbox-ovf|x-virtualbox-vbox|x-virtualbox-vdi|x-virtualbox-vhd|x-virtualbox-vmdk|x-www-form-urlencoded)|font\/(?:otf|ttf)|image\/(?:bmp|vnd\.adobe\.photoshop|vnd\.microsoft\.icon|vnd\.ms-dds|x-icon|x-ms-bmp)|message\/rfc822|model\/gltf-binary|x-shader\/x-fragment|x-shader\/x-vertex|[^;\s]+?\+(?:json|text|xml|yaml))(?:[;\s]|$)/i;
+var COMPRESSIBLE_CONTENT_TYPE_REGEX = /^\s*(?:text\/[^;\s]+|application\/(?:javascript|json|xml|xml-dtd|ecmascript|dart|postscript|rtf|tar|toml|vnd\.dart|vnd\.ms-fontobject|vnd\.ms-opentype|wasm|x-httpd-php|x-javascript|x-ns-proxy-autoconfig|x-sh|x-tar|x-virtualbox-hdd|x-virtualbox-ova|x-virtualbox-ovf|x-virtualbox-vbox|x-virtualbox-vdi|x-virtualbox-vhd|x-virtualbox-vmdk|x-www-form-urlencoded)|font\/(?:otf|ttf)|image\/(?:bmp|vnd\.adobe\.photoshop|vnd\.microsoft\.icon|vnd\.ms-dds|x-icon|x-ms-bmp)|message\/rfc822|model\/gltf-binary|x-shader\/x-fragment|x-shader\/x-vertex|[^;\s]+?\+(?:json|text|xml|yaml))(?:[;\s]|$)/i;
 var ENCODINGS = {
   br: ".br",
   zstd: ".zst",
-  gzip: ".gz",
+  gzip: ".gz"
 };
 var ENCODINGS_ORDERED_KEYS = Object.keys(ENCODINGS);
 var createStreamBody = (stream) => {
@@ -2864,7 +2643,7 @@ var createStreamBody = (stream) => {
     },
     cancel() {
       stream.destroy();
-    },
+    }
   });
   return body;
 };
@@ -2875,7 +2654,8 @@ var getStats = (path) => {
   let stats;
   try {
     stats = lstatSync(path);
-  } catch {}
+  } catch {
+  }
   return stats;
 };
 var serveStatic = (options = { root: "" }) => {
@@ -2891,10 +2671,8 @@ var serveStatic = (options = { root: "" }) => {
       return next();
     }
     let path = getFilePathWithoutDefaultDocument({
-      filename: options.rewriteRequestPath
-        ? options.rewriteRequestPath(filename)
-        : filename,
-      root: options.root,
+      filename: options.rewriteRequestPath ? options.rewriteRequestPath(filename) : filename,
+      root: options.root
     });
     if (path) {
       path = addCurrentDirPrefix(path);
@@ -2904,11 +2682,9 @@ var serveStatic = (options = { root: "" }) => {
     let stats = getStats(path);
     if (stats && stats.isDirectory()) {
       path = getFilePath({
-        filename: options.rewriteRequestPath
-          ? options.rewriteRequestPath(filename)
-          : filename,
+        filename: options.rewriteRequestPath ? options.rewriteRequestPath(filename) : filename,
         root: options.root,
-        defaultDocument: options.index ?? "index.html",
+        defaultDocument: options.index ?? "index.html"
       });
       if (path) {
         path = addCurrentDirPrefix(path);
@@ -2924,15 +2700,9 @@ var serveStatic = (options = { root: "" }) => {
     await options.onFound?.(path, c2);
     const mimeType = getMimeType(path);
     c2.header("Content-Type", mimeType || "application/octet-stream");
-    if (
-      options.precompressed &&
-      (!mimeType || COMPRESSIBLE_CONTENT_TYPE_REGEX.test(mimeType))
-    ) {
+    if (options.precompressed && (!mimeType || COMPRESSIBLE_CONTENT_TYPE_REGEX.test(mimeType))) {
       const acceptEncodingSet = new Set(
-        c2.req
-          .header("Accept-Encoding")
-          ?.split(",")
-          .map((encoding) => encoding.trim())
+        c2.req.header("Accept-Encoding")?.split(",").map((encoding) => encoding.trim())
       );
       for (const encoding of ENCODINGS_ORDERED_KEYS) {
         if (!acceptEncodingSet.has(encoding)) {
@@ -2978,7 +2748,7 @@ var RENDER_TYPE = {
   STRING_ARRAY: "string_array",
   STRING: "string",
   JSON_STRING: "json_string",
-  RAW: "raw",
+  RAW: "raw"
 };
 var RENDER_TYPE_MAP = {
   configUrl: RENDER_TYPE.STRING,
@@ -3017,40 +2787,37 @@ var RENDER_TYPE_MAP = {
   validatorUrl: RENDER_TYPE.STRING,
   withCredentials: RENDER_TYPE.RAW,
   modelPropertyMacro: RENDER_TYPE.RAW,
-  parameterMacro: RENDER_TYPE.RAW,
+  parameterMacro: RENDER_TYPE.RAW
 };
 var renderSwaggerUIOptions = (options) => {
-  const optionsStrings = Object.entries(options)
-    .map(([k, v]) => {
-      const key = k;
-      if (!RENDER_TYPE_MAP[key] || v === void 0) {
-        return "";
-      }
-      switch (RENDER_TYPE_MAP[key]) {
-        case RENDER_TYPE.STRING:
-          return `${key}: '${v}'`;
-        case RENDER_TYPE.STRING_ARRAY:
-          if (!Array.isArray(v)) {
-            return "";
-          }
-          return `${key}: [${v.map((ve) => `${ve}`).join(",")}]`;
-        case RENDER_TYPE.JSON_STRING:
-          return `${key}: ${JSON.stringify(v)}`;
-        case RENDER_TYPE.RAW:
-          return `${key}: ${v}`;
-        default:
+  const optionsStrings = Object.entries(options).map(([k, v]) => {
+    const key = k;
+    if (!RENDER_TYPE_MAP[key] || v === void 0) {
+      return "";
+    }
+    switch (RENDER_TYPE_MAP[key]) {
+      case RENDER_TYPE.STRING:
+        return `${key}: '${v}'`;
+      case RENDER_TYPE.STRING_ARRAY:
+        if (!Array.isArray(v)) {
           return "";
-      }
-    })
-    .filter((item) => item !== "")
-    .join(",");
+        }
+        return `${key}: [${v.map((ve) => `${ve}`).join(",")}]`;
+      case RENDER_TYPE.JSON_STRING:
+        return `${key}: ${JSON.stringify(v)}`;
+      case RENDER_TYPE.RAW:
+        return `${key}: ${v}`;
+      default:
+        return "";
+    }
+  }).filter((item) => item !== "").join(",");
   return optionsStrings;
 };
 var remoteAssets = ({ version }) => {
   const url = `https://cdn.jsdelivr.net/npm/swagger-ui-dist${version !== void 0 ? `@${version}` : ""}`;
   return {
     css: [`${url}/swagger-ui.css`],
-    js: [`${url}/swagger-ui-bundle.js`],
+    js: [`${url}/swagger-ui-bundle.js`]
   };
 };
 var SwaggerUI = (options) => {
@@ -3105,122 +2872,62 @@ var a = (e2, t2) => {
   if (o.has(s3)) return o.get(s3);
   let a2 = e2;
   if ("/" === t2) return `${a2}Index`;
-  for (const e3 of t2.split("/"))
-    123 === e3.charCodeAt(0)
-      ? (a2 += `By${n(e3.slice(1, -1))}`)
-      : (a2 += n(e3));
+  for (const e3 of t2.split("/")) 123 === e3.charCodeAt(0) ? a2 += `By${n(e3.slice(1, -1))}` : a2 += n(e3);
   return o.set(s3, a2), a2;
 };
 var r = /* @__PURE__ */ new Map();
 function c(e2, t2, s3) {
-  return e2 && t2 in e2 ? (e2[t2] ?? s3) : s3;
+  return e2 && t2 in e2 ? e2[t2] ?? s3 : s3;
 }
 function i(...e2) {
   return e2.reduce((e3, t2) => {
     if (!t2) return e3;
     let s3;
-    return (
-      (("tags" in e3 && e3.tags) || ("tags" in t2 && t2.tags)) &&
-        (s3 = [...c(e3, "tags", []), ...c(t2, "tags", [])]),
-      {
-        ...e3,
-        ...t2,
-        tags: s3,
-        responses: { ...c(e3, "responses", {}), ...c(t2, "responses", {}) },
-        parameters: m(e3.parameters, t2.parameters),
-      }
-    );
+    return ("tags" in e3 && e3.tags || "tags" in t2 && t2.tags) && (s3 = [...c(e3, "tags", []), ...c(t2, "tags", [])]), { ...e3, ...t2, tags: s3, responses: { ...c(e3, "responses", {}), ...c(t2, "responses", {}) }, parameters: m(e3.parameters, t2.parameters) };
   }, {});
 }
 function p({ path: e2, method: t2, data: s3, schema: n2 }) {
-  e2 = ((e3) =>
-    e3
-      .split("/")
-      .map((e4) => {
-        let t3 = e4;
-        return (
-          t3.startsWith(":") &&
-            ((t3 = t3.slice(1, t3.length)),
-            t3.endsWith("?") && (t3 = t3.slice(0, -1)),
-            (t3 = `{${t3}}`)),
-          t3
-        );
-      })
-      .join("/"))(e2);
+  e2 = ((e3) => e3.split("/").map((e4) => {
+    let t3 = e4;
+    return t3.startsWith(":") && (t3 = t3.slice(1, t3.length), t3.endsWith("?") && (t3 = t3.slice(0, -1)), t3 = `{${t3}}`), t3;
+  }).join("/"))(e2);
   const o2 = t2.toLowerCase();
-  if ("all" === o2)
-    if (r.has(e2)) {
-      const t3 = r.get(e2) ?? {};
-      r.set(e2, { ...t3, ...s3, parameters: m(t3.parameters, s3.parameters) });
-    } else r.set(e2, s3);
+  if ("all" === o2) if (r.has(e2)) {
+    const t3 = r.get(e2) ?? {};
+    r.set(e2, { ...t3, ...s3, parameters: m(t3.parameters, s3.parameters) });
+  } else r.set(e2, s3);
   else {
-    const t3 = (function (e3) {
+    const t3 = function(e3) {
       const t4 = Array.from(r.keys());
       let s4 = {};
       for (const n3 of t4) e3.match(n3) && (s4 = i(s4, r.get(n3) ?? {}));
       return s4;
-    })(e2);
-    n2[e2] = {
-      ...(n2[e2] ? n2[e2] : {}),
-      [o2]: {
-        responses: {},
-        operationId: a(o2, e2),
-        ...i(t3, n2[e2]?.[o2], s3),
-      },
-    };
+    }(e2);
+    n2[e2] = { ...n2[e2] ? n2[e2] : {}, [o2]: { responses: {}, operationId: a(o2, e2), ...i(t3, n2[e2]?.[o2], s3) } };
   }
 }
-var l = (e2) => ("$ref" in e2 ? e2.$ref : `${e2.in} ${e2.name}`);
+var l = (e2) => "$ref" in e2 ? e2.$ref : `${e2.in} ${e2.name}`;
 function m(...e2) {
-  const t2 = e2
-    .flatMap((e3) => e3 ?? [])
-    .reduce((e3, t3) => (e3.set(l(t3), t3), e3), /* @__PURE__ */ new Map());
+  const t2 = e2.flatMap((e3) => e3 ?? []).reduce((e3, t3) => (e3.set(l(t3), t3), e3), /* @__PURE__ */ new Map());
   return Array.from(t2.values());
 }
 function u(e2, { excludeStaticFile: t2 = true, exclude: s3 = [] }) {
-  const n2 = {},
-    o2 = Array.isArray(s3) ? s3 : [s3];
-  for (const [s4, a2] of Object.entries(e2))
-    if (
-      !(
-        o2.some((e3) => ("string" == typeof e3 ? s4 === e3 : e3.test(s4))) ||
-        s4.includes("*") ||
-        (t2 && s4.includes("."))
-      )
-    ) {
-      for (const e3 of Object.keys(a2)) {
-        const t3 = a2[e3];
-        if (s4.includes("{")) {
-          t3.parameters || (t3.parameters = []);
-          const e4 = s4
-            .split("/")
-            .filter(
-              (e5) =>
-                e5.startsWith("{") &&
-                !t3.parameters.find(
-                  (t4) =>
-                    "path" === t4.in && t4.name === e5.slice(1, e5.length - 1)
-                )
-            );
-          for (const s5 of e4) {
-            const e5 = s5.slice(1, s5.length - 1),
-              n3 = t3.parameters.findIndex(
-                (t4) => "param" === t4.in && t4.name === e5
-              );
-            -1 !== n3
-              ? (t3.parameters[n3].in = "path")
-              : t3.parameters.push({
-                  schema: { type: "string" },
-                  in: "path",
-                  name: e5,
-                  required: true,
-                });
-          }
+  const n2 = {}, o2 = Array.isArray(s3) ? s3 : [s3];
+  for (const [s4, a2] of Object.entries(e2)) if (!(o2.some((e3) => "string" == typeof e3 ? s4 === e3 : e3.test(s4)) || s4.includes("*") || t2 && s4.includes("."))) {
+    for (const e3 of Object.keys(a2)) {
+      const t3 = a2[e3];
+      if (s4.includes("{")) {
+        t3.parameters || (t3.parameters = []);
+        const e4 = s4.split("/").filter((e5) => e5.startsWith("{") && !t3.parameters.find((t4) => "path" === t4.in && t4.name === e5.slice(1, e5.length - 1)));
+        for (const s5 of e4) {
+          const e5 = s5.slice(1, s5.length - 1), n3 = t3.parameters.findIndex((t4) => "param" === t4.in && t4.name === e5);
+          -1 !== n3 ? t3.parameters[n3].in = "path" : t3.parameters.push({ schema: { type: "string" }, in: "path", name: e5, required: true });
         }
-        t3.responses || (t3.responses = { 200: {} });
       }
-      n2[s4] = a2;
+      t3.responses || (t3.responses = { 200: {} });
     }
+    n2[s4] = a2;
+  }
   return n2;
 }
 function f(e2, t2) {
@@ -3228,124 +2935,57 @@ function f(e2, t2) {
   let n2 = null;
   return async (o2) => (n2 || (n2 = await d(e2, t2, s3, o2)), o2.json(n2));
 }
-async function d(
-  t2,
-  {
-    documentation: n2 = {},
-    excludeStaticFile: o2 = true,
-    exclude: a2 = [],
-    excludeMethods: r2 = ["OPTIONS"],
-    excludeTags: c2 = [],
-    defaultOptions: i2,
-  } = {
-    documentation: {},
-    excludeStaticFile: true,
-    exclude: [],
-    excludeMethods: ["OPTIONS"],
-    excludeTags: [],
-  },
-  { version: l2 = "3.1.0", components: m2 = {} } = {
-    version: "3.1.0",
-    components: {},
-  },
-  f2
-) {
-  const d2 = { version: l2, components: m2 },
-    h2 = {};
+async function d(t2, { documentation: n2 = {}, excludeStaticFile: o2 = true, exclude: a2 = [], excludeMethods: r2 = ["OPTIONS"], excludeTags: c2 = [], defaultOptions: i2 } = { documentation: {}, excludeStaticFile: true, exclude: [], excludeMethods: ["OPTIONS"], excludeTags: [] }, { version: l2 = "3.1.0", components: m2 = {} } = { version: "3.1.0", components: {} }, f2) {
+  const d2 = { version: l2, components: m2 }, h2 = {};
   for (const n3 of t2.routes) {
     if (!(e in n3.handler)) continue;
     if (r2.includes(n3.method)) continue;
     if (false === s2.includes(n3.method) && "ALL" !== n3.method) continue;
-    const { resolver: t3, metadata: o3 = {} } = n3.handler[e],
-      a3 = i2?.[n3.method],
-      { docs: c3, components: l3 } = await t3({ ...d2, ...o3 }, a3);
-    (d2.components = { ...d2.components, ...(l3 ?? {}) }),
-      p({ method: n3.method, path: n3.path, data: c3, schema: h2 });
+    const { resolver: t3, metadata: o3 = {} } = n3.handler[e], a3 = i2?.[n3.method], { docs: c3, components: l3 } = await t3({ ...d2, ...o3 }, a3);
+    d2.components = { ...d2.components, ...l3 ?? {} }, p({ method: n3.method, path: n3.path, data: c3, schema: h2 });
   }
-  for (const e2 in h2)
-    for (const t3 in h2[e2]) {
-      const s3 = h2[e2][t3]?.hide;
-      s3 && ("boolean" == typeof s3 ? s3 : f2 && s3(f2)) && delete h2[e2][t3];
-    }
-  return {
-    openapi: d2.version,
-    ...{
-      ...n2,
-      tags: n2.tags?.filter((e2) => !c2?.includes(e2?.name)),
-      info: {
-        title: "Hono Documentation",
-        description: "Development documentation",
-        version: "0.0.0",
-        ...n2.info,
-      },
-      paths: { ...u(h2, { excludeStaticFile: o2, exclude: a2 }), ...n2.paths },
-      components: {
-        ...n2.components,
-        schemas: { ...d2.components, ...n2.components?.schemas },
-      },
-    },
-  };
+  for (const e2 in h2) for (const t3 in h2[e2]) {
+    const s3 = h2[e2][t3]?.hide;
+    s3 && ("boolean" == typeof s3 ? s3 : f2 && s3(f2)) && delete h2[e2][t3];
+  }
+  return { openapi: d2.version, ...{ ...n2, tags: n2.tags?.filter((e2) => !c2?.includes(e2?.name)), info: { title: "Hono Documentation", description: "Development documentation", version: "0.0.0", ...n2.info }, paths: { ...u(h2, { excludeStaticFile: o2, exclude: a2 }), ...n2.paths }, components: { ...n2.components, schemas: { ...d2.components, ...n2.components?.schemas } } } };
 }
 function h(s3) {
   const { validateResponse: n2, ...o2 } = s3;
-  return Object.assign(
-    async (e2, o3) => {
-      if ((await o3(), n2 && s3.responses)) {
-        const o4 = e2.res.status,
-          a2 = e2.res.headers.get("content-type");
-        if (o4 && a2) {
-          const r2 = s3.responses[o4];
-          if (r2 && "content" in r2 && r2.content) {
-            const s4 = a2.split(";")[0],
-              o5 = r2.content[s4];
-            if (o5?.schema && "validator" in o5.schema)
-              try {
-                let t2;
-                const n3 = e2.res.clone();
-                if (
-                  ("application/json" === s4
-                    ? (t2 = await n3.json())
-                    : "text/plain" === s4 && (t2 = await n3.text()),
-                  !t2)
-                )
-                  throw new Error("No data to validate!");
-                await o5.schema.validator(t2);
-              } catch (e3) {
-                let s5 = {
-                  status: 500,
-                  message: "Response validation failed!",
-                };
-                throw (
-                  ("object" == typeof n2 && (s5 = { ...s5, ...n2 }),
-                  new HTTPException(s5.status, {
-                    message: s5.message,
-                    cause: e3,
-                  }))
-                );
-              }
+  return Object.assign(async (e2, o3) => {
+    if (await o3(), n2 && s3.responses) {
+      const o4 = e2.res.status, a2 = e2.res.headers.get("content-type");
+      if (o4 && a2) {
+        const r2 = s3.responses[o4];
+        if (r2 && "content" in r2 && r2.content) {
+          const s4 = a2.split(";")[0], o5 = r2.content[s4];
+          if (o5?.schema && "validator" in o5.schema) try {
+            let t2;
+            const n3 = e2.res.clone();
+            if ("application/json" === s4 ? t2 = await n3.json() : "text/plain" === s4 && (t2 = await n3.text()), !t2) throw new Error("No data to validate!");
+            await o5.schema.validator(t2);
+          } catch (e3) {
+            let s5 = { status: 500, message: "Response validation failed!" };
+            throw "object" == typeof n2 && (s5 = { ...s5, ...n2 }), new HTTPException(s5.status, { message: s5.message, cause: e3 });
           }
         }
       }
-    },
-    { [e]: { resolver: (e2, t2) => x(e2, o2, t2) } }
-  );
+    }
+  }, { [e]: { resolver: (e2, t2) => x(e2, o2, t2) } });
 }
 async function x(e2, t2, s3 = {}) {
   let n2 = {};
   const o2 = { ...s3, ...t2, responses: { ...s3?.responses, ...t2.responses } };
-  if (o2.responses)
-    for (const t3 of Object.keys(o2.responses)) {
-      const s4 = o2.responses[t3];
-      if (s4 && "content" in s4)
-        for (const t4 of Object.keys(s4.content ?? {})) {
-          const o3 = s4.content?.[t4];
-          if (o3 && o3.schema && "builder" in o3.schema) {
-            const t5 = await o3.schema.builder(e2);
-            (o3.schema = t5.schema),
-              t5.components && (n2 = { ...n2, ...t5.components });
-          }
-        }
+  if (o2.responses) for (const t3 of Object.keys(o2.responses)) {
+    const s4 = o2.responses[t3];
+    if (s4 && "content" in s4) for (const t4 of Object.keys(s4.content ?? {})) {
+      const o3 = s4.content?.[t4];
+      if (o3 && (o3.schema && "builder" in o3.schema)) {
+        const t5 = await o3.schema.builder(e2);
+        o3.schema = t5.schema, t5.components && (n2 = { ...n2, ...t5.components });
+      }
     }
+  }
   return { docs: o2, components: n2 };
 }
 
@@ -3482,13 +3122,15 @@ var getType = (payload) => Object.prototype.toString.call(payload).slice(8, -1);
 var isUndefined = (payload) => typeof payload === "undefined";
 var isNull = (payload) => payload === null;
 var isPlainObject = (payload) => {
-  if (typeof payload !== "object" || payload === null) return false;
-  if (payload === Object.prototype) return false;
-  if (Object.getPrototypeOf(payload) === null) return true;
+  if (typeof payload !== "object" || payload === null)
+    return false;
+  if (payload === Object.prototype)
+    return false;
+  if (Object.getPrototypeOf(payload) === null)
+    return true;
   return Object.getPrototypeOf(payload) === Object.prototype;
 };
-var isEmptyObject = (payload) =>
-  isPlainObject(payload) && Object.keys(payload).length === 0;
+var isEmptyObject = (payload) => isPlainObject(payload) && Object.keys(payload).length === 0;
 var isArray = (payload) => Array.isArray(payload);
 var isString = (payload) => typeof payload === "string";
 var isNumber = (payload) => typeof payload === "number" && !isNaN(payload);
@@ -3500,17 +3142,10 @@ var isSymbol = (payload) => getType(payload) === "Symbol";
 var isDate = (payload) => payload instanceof Date && !isNaN(payload.valueOf());
 var isError = (payload) => payload instanceof Error;
 var isNaNValue = (payload) => typeof payload === "number" && isNaN(payload);
-var isPrimitive = (payload) =>
-  isBoolean(payload) ||
-  isNull(payload) ||
-  isUndefined(payload) ||
-  isNumber(payload) ||
-  isString(payload) ||
-  isSymbol(payload);
+var isPrimitive = (payload) => isBoolean(payload) || isNull(payload) || isUndefined(payload) || isNumber(payload) || isString(payload) || isSymbol(payload);
 var isBigint = (payload) => typeof payload === "bigint";
 var isInfinite = (payload) => payload === Infinity || payload === -Infinity;
-var isTypedArray = (payload) =>
-  ArrayBuffer.isView(payload) && !(payload instanceof DataView);
+var isTypedArray = (payload) => ArrayBuffer.isView(payload) && !(payload instanceof DataView);
 var isURL = (payload) => payload instanceof URL;
 
 // ../../node_modules/.pnpm/superjson@2.2.2/node_modules/superjson/dist/pathstringifier.js
@@ -3541,77 +3176,47 @@ var parsePath = (string) => {
 };
 
 // ../../node_modules/.pnpm/superjson@2.2.2/node_modules/superjson/dist/transformer.js
-function simpleTransformation(
-  isApplicable,
-  annotation,
-  transform,
-  untransform
-) {
+function simpleTransformation(isApplicable, annotation, transform, untransform) {
   return {
     isApplicable,
     annotation,
     transform,
-    untransform,
+    untransform
   };
 }
 var simpleRules = [
-  simpleTransformation(
-    isUndefined,
-    "undefined",
-    () => null,
-    () => void 0
-  ),
-  simpleTransformation(
-    isBigint,
-    "bigint",
-    (v) => v.toString(),
-    (v) => {
-      if (typeof BigInt !== "undefined") {
-        return BigInt(v);
-      }
-      console.error("Please add a BigInt polyfill.");
-      return v;
+  simpleTransformation(isUndefined, "undefined", () => null, () => void 0),
+  simpleTransformation(isBigint, "bigint", (v) => v.toString(), (v) => {
+    if (typeof BigInt !== "undefined") {
+      return BigInt(v);
     }
-  ),
-  simpleTransformation(
-    isDate,
-    "Date",
-    (v) => v.toISOString(),
-    (v) => new Date(v)
-  ),
-  simpleTransformation(
-    isError,
-    "Error",
-    (v, superJson) => {
-      const baseError = {
-        name: v.name,
-        message: v.message,
-      };
-      superJson.allowedErrorProps.forEach((prop) => {
-        baseError[prop] = v[prop];
-      });
-      return baseError;
-    },
-    (v, superJson) => {
-      const e2 = new Error(v.message);
-      e2.name = v.name;
-      e2.stack = v.stack;
-      superJson.allowedErrorProps.forEach((prop) => {
-        e2[prop] = v[prop];
-      });
-      return e2;
-    }
-  ),
-  simpleTransformation(
-    isRegExp,
-    "regexp",
-    (v) => "" + v,
-    (regex) => {
-      const body = regex.slice(1, regex.lastIndexOf("/"));
-      const flags = regex.slice(regex.lastIndexOf("/") + 1);
-      return new RegExp(body, flags);
-    }
-  ),
+    console.error("Please add a BigInt polyfill.");
+    return v;
+  }),
+  simpleTransformation(isDate, "Date", (v) => v.toISOString(), (v) => new Date(v)),
+  simpleTransformation(isError, "Error", (v, superJson) => {
+    const baseError = {
+      name: v.name,
+      message: v.message
+    };
+    superJson.allowedErrorProps.forEach((prop) => {
+      baseError[prop] = v[prop];
+    });
+    return baseError;
+  }, (v, superJson) => {
+    const e2 = new Error(v.message);
+    e2.name = v.name;
+    e2.stack = v.stack;
+    superJson.allowedErrorProps.forEach((prop) => {
+      e2[prop] = v[prop];
+    });
+    return e2;
+  }),
+  simpleTransformation(isRegExp, "regexp", (v) => "" + v, (regex) => {
+    const body = regex.slice(1, regex.lastIndexOf("/"));
+    const flags = regex.slice(regex.lastIndexOf("/") + 1);
+    return new RegExp(body, flags);
+  }),
   simpleTransformation(
     isSet,
     "set",
@@ -3620,76 +3225,46 @@ var simpleRules = [
     (v) => [...v.values()],
     (v) => new Set(v)
   ),
-  simpleTransformation(
-    isMap,
-    "map",
-    (v) => [...v.entries()],
-    (v) => new Map(v)
-  ),
-  simpleTransformation(
-    (v) => isNaNValue(v) || isInfinite(v),
-    "number",
-    (v) => {
-      if (isNaNValue(v)) {
-        return "NaN";
-      }
-      if (v > 0) {
-        return "Infinity";
-      } else {
-        return "-Infinity";
-      }
-    },
-    Number
-  ),
-  simpleTransformation(
-    (v) => v === 0 && 1 / v === -Infinity,
-    "number",
-    () => {
-      return "-0";
-    },
-    Number
-  ),
-  simpleTransformation(
-    isURL,
-    "URL",
-    (v) => v.toString(),
-    (v) => new URL(v)
-  ),
+  simpleTransformation(isMap, "map", (v) => [...v.entries()], (v) => new Map(v)),
+  simpleTransformation((v) => isNaNValue(v) || isInfinite(v), "number", (v) => {
+    if (isNaNValue(v)) {
+      return "NaN";
+    }
+    if (v > 0) {
+      return "Infinity";
+    } else {
+      return "-Infinity";
+    }
+  }, Number),
+  simpleTransformation((v) => v === 0 && 1 / v === -Infinity, "number", () => {
+    return "-0";
+  }, Number),
+  simpleTransformation(isURL, "URL", (v) => v.toString(), (v) => new URL(v))
 ];
-function compositeTransformation(
-  isApplicable,
-  annotation,
-  transform,
-  untransform
-) {
+function compositeTransformation(isApplicable, annotation, transform, untransform) {
   return {
     isApplicable,
     annotation,
     transform,
-    untransform,
+    untransform
   };
 }
-var symbolRule = compositeTransformation(
-  (s3, superJson) => {
-    if (isSymbol(s3)) {
-      const isRegistered = !!superJson.symbolRegistry.getIdentifier(s3);
-      return isRegistered;
-    }
-    return false;
-  },
-  (s3, superJson) => {
-    const identifier = superJson.symbolRegistry.getIdentifier(s3);
-    return ["symbol", identifier];
-  },
-  (v) => v.description,
-  (_, a2, superJson) => {
-    const value = superJson.symbolRegistry.getValue(a2[1]);
-    if (!value) {
-      throw new Error("Trying to deserialize unknown symbol");
-    }
-    return value;
+var symbolRule = compositeTransformation((s3, superJson) => {
+  if (isSymbol(s3)) {
+    const isRegistered = !!superJson.symbolRegistry.getIdentifier(s3);
+    return isRegistered;
   }
-);
+  return false;
+}, (s3, superJson) => {
+  const identifier = superJson.symbolRegistry.getIdentifier(s3);
+  return ["symbol", identifier];
+}, (v) => v.description, (_, a2, superJson) => {
+  const value = superJson.symbolRegistry.getValue(a2[1]);
+  if (!value) {
+    throw new Error("Trying to deserialize unknown symbol");
+  }
+  return value;
+});
 var constructorToName = [
   Int8Array,
   Uint8Array,
@@ -3699,101 +3274,74 @@ var constructorToName = [
   Uint32Array,
   Float32Array,
   Float64Array,
-  Uint8ClampedArray,
+  Uint8ClampedArray
 ].reduce((obj, ctor) => {
   obj[ctor.name] = ctor;
   return obj;
 }, {});
-var typedArrayRule = compositeTransformation(
-  isTypedArray,
-  (v) => ["typed-array", v.constructor.name],
-  (v) => [...v],
-  (v, a2) => {
-    const ctor = constructorToName[a2[1]];
-    if (!ctor) {
-      throw new Error("Trying to deserialize unknown typed array");
-    }
-    return new ctor(v);
+var typedArrayRule = compositeTransformation(isTypedArray, (v) => ["typed-array", v.constructor.name], (v) => [...v], (v, a2) => {
+  const ctor = constructorToName[a2[1]];
+  if (!ctor) {
+    throw new Error("Trying to deserialize unknown typed array");
   }
-);
+  return new ctor(v);
+});
 function isInstanceOfRegisteredClass(potentialClass, superJson) {
   if (potentialClass?.constructor) {
-    const isRegistered = !!superJson.classRegistry.getIdentifier(
-      potentialClass.constructor
-    );
+    const isRegistered = !!superJson.classRegistry.getIdentifier(potentialClass.constructor);
     return isRegistered;
   }
   return false;
 }
-var classRule = compositeTransformation(
-  isInstanceOfRegisteredClass,
-  (clazz, superJson) => {
-    const identifier = superJson.classRegistry.getIdentifier(clazz.constructor);
-    return ["class", identifier];
-  },
-  (clazz, superJson) => {
-    const allowedProps = superJson.classRegistry.getAllowedProps(
-      clazz.constructor
-    );
-    if (!allowedProps) {
-      return { ...clazz };
-    }
-    const result = {};
-    allowedProps.forEach((prop) => {
-      result[prop] = clazz[prop];
-    });
-    return result;
-  },
-  (v, a2, superJson) => {
-    const clazz = superJson.classRegistry.getValue(a2[1]);
-    if (!clazz) {
-      throw new Error(
-        `Trying to deserialize unknown class '${a2[1]}' - check https://github.com/blitz-js/superjson/issues/116#issuecomment-773996564`
-      );
-    }
-    return Object.assign(Object.create(clazz.prototype), v);
+var classRule = compositeTransformation(isInstanceOfRegisteredClass, (clazz, superJson) => {
+  const identifier = superJson.classRegistry.getIdentifier(clazz.constructor);
+  return ["class", identifier];
+}, (clazz, superJson) => {
+  const allowedProps = superJson.classRegistry.getAllowedProps(clazz.constructor);
+  if (!allowedProps) {
+    return { ...clazz };
   }
-);
-var customRule = compositeTransformation(
-  (value, superJson) => {
-    return !!superJson.customTransformerRegistry.findApplicable(value);
-  },
-  (value, superJson) => {
-    const transformer =
-      superJson.customTransformerRegistry.findApplicable(value);
-    return ["custom", transformer.name];
-  },
-  (value, superJson) => {
-    const transformer =
-      superJson.customTransformerRegistry.findApplicable(value);
-    return transformer.serialize(value);
-  },
-  (v, a2, superJson) => {
-    const transformer = superJson.customTransformerRegistry.findByName(a2[1]);
-    if (!transformer) {
-      throw new Error("Trying to deserialize unknown custom value");
-    }
-    return transformer.deserialize(v);
+  const result = {};
+  allowedProps.forEach((prop) => {
+    result[prop] = clazz[prop];
+  });
+  return result;
+}, (v, a2, superJson) => {
+  const clazz = superJson.classRegistry.getValue(a2[1]);
+  if (!clazz) {
+    throw new Error(`Trying to deserialize unknown class '${a2[1]}' - check https://github.com/blitz-js/superjson/issues/116#issuecomment-773996564`);
   }
-);
+  return Object.assign(Object.create(clazz.prototype), v);
+});
+var customRule = compositeTransformation((value, superJson) => {
+  return !!superJson.customTransformerRegistry.findApplicable(value);
+}, (value, superJson) => {
+  const transformer = superJson.customTransformerRegistry.findApplicable(value);
+  return ["custom", transformer.name];
+}, (value, superJson) => {
+  const transformer = superJson.customTransformerRegistry.findApplicable(value);
+  return transformer.serialize(value);
+}, (v, a2, superJson) => {
+  const transformer = superJson.customTransformerRegistry.findByName(a2[1]);
+  if (!transformer) {
+    throw new Error("Trying to deserialize unknown custom value");
+  }
+  return transformer.deserialize(v);
+});
 var compositeRules = [classRule, symbolRule, customRule, typedArrayRule];
 var transformValue = (value, superJson) => {
-  const applicableCompositeRule = findArr(compositeRules, (rule) =>
-    rule.isApplicable(value, superJson)
-  );
+  const applicableCompositeRule = findArr(compositeRules, (rule) => rule.isApplicable(value, superJson));
   if (applicableCompositeRule) {
     return {
       value: applicableCompositeRule.transform(value, superJson),
-      type: applicableCompositeRule.annotation(value, superJson),
+      type: applicableCompositeRule.annotation(value, superJson)
     };
   }
-  const applicableSimpleRule = findArr(simpleRules, (rule) =>
-    rule.isApplicable(value, superJson)
-  );
+  const applicableSimpleRule = findArr(simpleRules, (rule) => rule.isApplicable(value, superJson));
   if (applicableSimpleRule) {
     return {
       value: applicableSimpleRule.transform(value, superJson),
-      type: applicableSimpleRule.annotation,
+      type: applicableSimpleRule.annotation
     };
   }
   return void 0;
@@ -3827,7 +3375,8 @@ var untransformValue = (json, type, superJson) => {
 
 // ../../node_modules/.pnpm/superjson@2.2.2/node_modules/superjson/dist/accessDeep.js
 var getNthKey = (value, n2) => {
-  if (n2 > value.size) throw new Error("index out of bounds");
+  if (n2 > value.size)
+    throw new Error("index out of bounds");
   const keys = value.keys();
   while (n2 > 0) {
     keys.next();
@@ -3946,9 +3495,7 @@ function traverse(tree, walker2, origin = []) {
     return;
   }
   if (!isArray(tree)) {
-    forEach(tree, (subtree, key) =>
-      traverse(subtree, walker2, [...origin, ...parsePath(key)])
-    );
+    forEach(tree, (subtree, key) => traverse(subtree, walker2, [...origin, ...parsePath(key)]));
     return;
   }
   const [nodeValue, children] = tree;
@@ -3985,12 +3532,7 @@ function applyReferentialEqualityAnnotations(plain, annotations) {
   }
   return plain;
 }
-var isDeep = (object, superJson) =>
-  isPlainObject(object) ||
-  isArray(object) ||
-  isMap(object) ||
-  isSet(object) ||
-  isInstanceOfRegisteredClass(object, superJson);
+var isDeep = (object, superJson) => isPlainObject(object) || isArray(object) || isMap(object) || isSet(object) || isInstanceOfRegisteredClass(object, superJson);
 function addIdentity(object, path, identities) {
   const existingSet = identities.get(object);
   if (existingSet) {
@@ -4007,16 +3549,13 @@ function generateReferentialEqualityAnnotations(identitites, dedupe) {
       return;
     }
     if (!dedupe) {
-      paths = paths
-        .map((path) => path.map(String))
-        .sort((a2, b) => a2.length - b.length);
+      paths = paths.map((path) => path.map(String)).sort((a2, b) => a2.length - b.length);
     }
     const [representativePath, ...identicalPaths] = paths;
     if (representativePath.length === 0) {
       rootEqualityPaths = identicalPaths.map(stringifyPath);
     } else {
-      result[stringifyPath(representativePath)] =
-        identicalPaths.map(stringifyPath);
+      result[stringifyPath(representativePath)] = identicalPaths.map(stringifyPath);
     }
   });
   if (rootEqualityPaths) {
@@ -4029,37 +3568,25 @@ function generateReferentialEqualityAnnotations(identitites, dedupe) {
     return isEmptyObject(result) ? void 0 : result;
   }
 }
-var walker = (
-  object,
-  identities,
-  superJson,
-  dedupe,
-  path = [],
-  objectsInThisPath = [],
-  seenObjects = /* @__PURE__ */ new Map()
-) => {
+var walker = (object, identities, superJson, dedupe, path = [], objectsInThisPath = [], seenObjects = /* @__PURE__ */ new Map()) => {
   const primitive = isPrimitive(object);
   if (!primitive) {
     addIdentity(object, path, identities);
     const seen = seenObjects.get(object);
     if (seen) {
-      return dedupe
-        ? {
-            transformedValue: null,
-          }
-        : seen;
+      return dedupe ? {
+        transformedValue: null
+      } : seen;
     }
   }
   if (!isDeep(object, superJson)) {
     const transformed2 = transformValue(object, superJson);
-    const result2 = transformed2
-      ? {
-          transformedValue: transformed2.value,
-          annotations: [transformed2.type],
-        }
-      : {
-          transformedValue: object,
-        };
+    const result2 = transformed2 ? {
+      transformedValue: transformed2.value,
+      annotations: [transformed2.type]
+    } : {
+      transformedValue: object
+    };
     if (!primitive) {
       seenObjects.set(object, result2);
     }
@@ -4067,7 +3594,7 @@ var walker = (
   }
   if (includes(objectsInThisPath, object)) {
     return {
-      transformedValue: null,
+      transformedValue: null
     };
   }
   const transformationResult = transformValue(object, superJson);
@@ -4075,24 +3602,10 @@ var walker = (
   const transformedValue = isArray(transformed) ? [] : {};
   const innerAnnotations = {};
   forEach(transformed, (value, index) => {
-    if (
-      index === "__proto__" ||
-      index === "constructor" ||
-      index === "prototype"
-    ) {
-      throw new Error(
-        `Detected property ${index}. This is a prototype pollution risk, please remove it from your object.`
-      );
+    if (index === "__proto__" || index === "constructor" || index === "prototype") {
+      throw new Error(`Detected property ${index}. This is a prototype pollution risk, please remove it from your object.`);
     }
-    const recursiveResult = walker(
-      value,
-      identities,
-      superJson,
-      dedupe,
-      [...path, index],
-      [...objectsInThisPath, object],
-      seenObjects
-    );
+    const recursiveResult = walker(value, identities, superJson, dedupe, [...path, index], [...objectsInThisPath, object], seenObjects);
     transformedValue[index] = recursiveResult.transformedValue;
     if (isArray(recursiveResult.annotations)) {
       innerAnnotations[index] = recursiveResult.annotations;
@@ -4102,19 +3615,13 @@ var walker = (
       });
     }
   });
-  const result = isEmptyObject(innerAnnotations)
-    ? {
-        transformedValue,
-        annotations: !!transformationResult
-          ? [transformationResult.type]
-          : void 0,
-      }
-    : {
-        transformedValue,
-        annotations: !!transformationResult
-          ? [transformationResult.type, innerAnnotations]
-          : innerAnnotations,
-      };
+  const result = isEmptyObject(innerAnnotations) ? {
+    transformedValue,
+    annotations: !!transformationResult ? [transformationResult.type] : void 0
+  } : {
+    transformedValue,
+    annotations: !!transformationResult ? [transformationResult.type, innerAnnotations] : innerAnnotations
+  };
   if (!primitive) {
     seenObjects.set(object, result);
   }
@@ -4129,27 +3636,23 @@ function isArray2(payload) {
   return getType2(payload) === "Array";
 }
 function isPlainObject2(payload) {
-  if (getType2(payload) !== "Object") return false;
+  if (getType2(payload) !== "Object")
+    return false;
   const prototype = Object.getPrototypeOf(payload);
-  return (
-    !!prototype &&
-    prototype.constructor === Object &&
-    prototype === Object.prototype
-  );
+  return !!prototype && prototype.constructor === Object && prototype === Object.prototype;
 }
 
 // ../../node_modules/.pnpm/copy-anything@3.0.5/node_modules/copy-anything/dist/index.js
 function assignProp(carry, key, newVal, originalObject, includeNonenumerable) {
-  const propType = {}.propertyIsEnumerable.call(originalObject, key)
-    ? "enumerable"
-    : "nonenumerable";
-  if (propType === "enumerable") carry[key] = newVal;
+  const propType = {}.propertyIsEnumerable.call(originalObject, key) ? "enumerable" : "nonenumerable";
+  if (propType === "enumerable")
+    carry[key] = newVal;
   if (includeNonenumerable && propType === "nonenumerable") {
     Object.defineProperty(carry, key, {
       value: newVal,
       enumerable: false,
       writable: true,
-      configurable: true,
+      configurable: true
     });
   }
 }
@@ -4189,22 +3692,19 @@ var SuperJSON = class {
     const identities = /* @__PURE__ */ new Map();
     const output = walker(object, identities, this, this.dedupe);
     const res = {
-      json: output.transformedValue,
+      json: output.transformedValue
     };
     if (output.annotations) {
       res.meta = {
         ...res.meta,
-        values: output.annotations,
+        values: output.annotations
       };
     }
-    const equalityAnnotations = generateReferentialEqualityAnnotations(
-      identities,
-      this.dedupe
-    );
+    const equalityAnnotations = generateReferentialEqualityAnnotations(identities, this.dedupe);
     if (equalityAnnotations) {
       res.meta = {
         ...res.meta,
-        referentialEqualities: equalityAnnotations,
+        referentialEqualities: equalityAnnotations
       };
     }
     return res;
@@ -4216,10 +3716,7 @@ var SuperJSON = class {
       result = applyValueAnnotations(result, meta.values, this);
     }
     if (meta?.referentialEqualities) {
-      result = applyReferentialEqualityAnnotations(
-        result,
-        meta.referentialEqualities
-      );
+      result = applyReferentialEqualityAnnotations(result, meta.referentialEqualities);
     }
     return result;
   }
@@ -4238,7 +3735,7 @@ var SuperJSON = class {
   registerCustom(transformer, name) {
     this.customTransformerRegistry.register({
       name,
-      ...transformer,
+      ...transformer
     });
   }
   allowErrorProps(...props) {
@@ -4246,36 +3743,18 @@ var SuperJSON = class {
   }
 };
 SuperJSON.defaultInstance = new SuperJSON();
-SuperJSON.serialize = SuperJSON.defaultInstance.serialize.bind(
-  SuperJSON.defaultInstance
-);
-SuperJSON.deserialize = SuperJSON.defaultInstance.deserialize.bind(
-  SuperJSON.defaultInstance
-);
-SuperJSON.stringify = SuperJSON.defaultInstance.stringify.bind(
-  SuperJSON.defaultInstance
-);
-SuperJSON.parse = SuperJSON.defaultInstance.parse.bind(
-  SuperJSON.defaultInstance
-);
-SuperJSON.registerClass = SuperJSON.defaultInstance.registerClass.bind(
-  SuperJSON.defaultInstance
-);
-SuperJSON.registerSymbol = SuperJSON.defaultInstance.registerSymbol.bind(
-  SuperJSON.defaultInstance
-);
-SuperJSON.registerCustom = SuperJSON.defaultInstance.registerCustom.bind(
-  SuperJSON.defaultInstance
-);
-SuperJSON.allowErrorProps = SuperJSON.defaultInstance.allowErrorProps.bind(
-  SuperJSON.defaultInstance
-);
+SuperJSON.serialize = SuperJSON.defaultInstance.serialize.bind(SuperJSON.defaultInstance);
+SuperJSON.deserialize = SuperJSON.defaultInstance.deserialize.bind(SuperJSON.defaultInstance);
+SuperJSON.stringify = SuperJSON.defaultInstance.stringify.bind(SuperJSON.defaultInstance);
+SuperJSON.parse = SuperJSON.defaultInstance.parse.bind(SuperJSON.defaultInstance);
+SuperJSON.registerClass = SuperJSON.defaultInstance.registerClass.bind(SuperJSON.defaultInstance);
+SuperJSON.registerSymbol = SuperJSON.defaultInstance.registerSymbol.bind(SuperJSON.defaultInstance);
+SuperJSON.registerCustom = SuperJSON.defaultInstance.registerCustom.bind(SuperJSON.defaultInstance);
+SuperJSON.allowErrorProps = SuperJSON.defaultInstance.allowErrorProps.bind(SuperJSON.defaultInstance);
 var stringify = SuperJSON.stringify;
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/Options.js
-var ignoreOverride = Symbol(
-  "Let zodToJsonSchema decide on which parser to use"
-);
+var ignoreOverride = Symbol("Let zodToJsonSchema decide on which parser to use");
 var defaultOptions = {
   name: void 0,
   $refStrategy: "root",
@@ -4297,51 +3776,44 @@ var defaultOptions = {
   applyRegexFlags: false,
   emailStrategy: "format:email",
   base64Strategy: "contentEncoding:base64",
-  nameStrategy: "ref",
+  nameStrategy: "ref"
 };
-var getDefaultOptions = (options) =>
-  typeof options === "string"
-    ? {
-        ...defaultOptions,
-        name: options,
-      }
-    : {
-        ...defaultOptions,
-        ...options,
-      };
+var getDefaultOptions = (options) => typeof options === "string" ? {
+  ...defaultOptions,
+  name: options
+} : {
+  ...defaultOptions,
+  ...options
+};
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/Refs.js
 var getRefs = (options) => {
   const _options = getDefaultOptions(options);
-  const currentPath =
-    _options.name !== void 0
-      ? [..._options.basePath, _options.definitionPath, _options.name]
-      : _options.basePath;
+  const currentPath = _options.name !== void 0 ? [..._options.basePath, _options.definitionPath, _options.name] : _options.basePath;
   return {
     ..._options,
     currentPath,
     propertyPath: void 0,
-    seen: new Map(
-      Object.entries(_options.definitions).map(([name, def]) => [
-        def._def,
-        {
-          def: def._def,
-          path: [..._options.basePath, _options.definitionPath, name],
-          // Resolution of references will be forced even though seen, so it's ok that the schema is undefined here for now.
-          jsonSchema: void 0,
-        },
-      ])
-    ),
+    seen: new Map(Object.entries(_options.definitions).map(([name, def]) => [
+      def._def,
+      {
+        def: def._def,
+        path: [..._options.basePath, _options.definitionPath, name],
+        // Resolution of references will be forced even though seen, so it's ok that the schema is undefined here for now.
+        jsonSchema: void 0
+      }
+    ]))
   };
 };
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
 function addErrorMessage(res, key, errorMessage, refs) {
-  if (!refs?.errorMessages) return;
+  if (!refs?.errorMessages)
+    return;
   if (errorMessage) {
     res.errorMessage = {
       ...res.errorMessage,
-      [key]: errorMessage,
+      [key]: errorMessage
     };
   }
 }
@@ -4356,50 +3828,23 @@ function parseAnyDef() {
 }
 function parseArrayDef(def, refs) {
   const res = {
-    type: "array",
+    type: "array"
   };
-  if (
-    def.type?._def &&
-    def.type?._def?.typeName !== ZodFirstPartyTypeKind.ZodAny
-  ) {
+  if (def.type?._def && def.type?._def?.typeName !== ZodFirstPartyTypeKind.ZodAny) {
     res.items = parseDef(def.type._def, {
       ...refs,
-      currentPath: [...refs.currentPath, "items"],
+      currentPath: [...refs.currentPath, "items"]
     });
   }
   if (def.minLength) {
-    setResponseValueAndErrors(
-      res,
-      "minItems",
-      def.minLength.value,
-      def.minLength.message,
-      refs
-    );
+    setResponseValueAndErrors(res, "minItems", def.minLength.value, def.minLength.message, refs);
   }
   if (def.maxLength) {
-    setResponseValueAndErrors(
-      res,
-      "maxItems",
-      def.maxLength.value,
-      def.maxLength.message,
-      refs
-    );
+    setResponseValueAndErrors(res, "maxItems", def.maxLength.value, def.maxLength.message, refs);
   }
   if (def.exactLength) {
-    setResponseValueAndErrors(
-      res,
-      "minItems",
-      def.exactLength.value,
-      def.exactLength.message,
-      refs
-    );
-    setResponseValueAndErrors(
-      res,
-      "maxItems",
-      def.exactLength.value,
-      def.exactLength.message,
-      refs
-    );
+    setResponseValueAndErrors(res, "minItems", def.exactLength.value, def.exactLength.message, refs);
+    setResponseValueAndErrors(res, "maxItems", def.exactLength.value, def.exactLength.message, refs);
   }
   return res;
 }
@@ -4408,83 +3853,42 @@ function parseArrayDef(def, refs) {
 function parseBigintDef(def, refs) {
   const res = {
     type: "integer",
-    format: "int64",
+    format: "int64"
   };
-  if (!def.checks) return res;
+  if (!def.checks)
+    return res;
   for (const check of def.checks) {
     switch (check.kind) {
       case "min":
         if (refs.target === "jsonSchema7") {
           if (check.inclusive) {
-            setResponseValueAndErrors(
-              res,
-              "minimum",
-              check.value,
-              check.message,
-              refs
-            );
+            setResponseValueAndErrors(res, "minimum", check.value, check.message, refs);
           } else {
-            setResponseValueAndErrors(
-              res,
-              "exclusiveMinimum",
-              check.value,
-              check.message,
-              refs
-            );
+            setResponseValueAndErrors(res, "exclusiveMinimum", check.value, check.message, refs);
           }
         } else {
           if (!check.inclusive) {
             res.exclusiveMinimum = true;
           }
-          setResponseValueAndErrors(
-            res,
-            "minimum",
-            check.value,
-            check.message,
-            refs
-          );
+          setResponseValueAndErrors(res, "minimum", check.value, check.message, refs);
         }
         break;
       case "max":
         if (refs.target === "jsonSchema7") {
           if (check.inclusive) {
-            setResponseValueAndErrors(
-              res,
-              "maximum",
-              check.value,
-              check.message,
-              refs
-            );
+            setResponseValueAndErrors(res, "maximum", check.value, check.message, refs);
           } else {
-            setResponseValueAndErrors(
-              res,
-              "exclusiveMaximum",
-              check.value,
-              check.message,
-              refs
-            );
+            setResponseValueAndErrors(res, "exclusiveMaximum", check.value, check.message, refs);
           }
         } else {
           if (!check.inclusive) {
             res.exclusiveMaximum = true;
           }
-          setResponseValueAndErrors(
-            res,
-            "maximum",
-            check.value,
-            check.message,
-            refs
-          );
+          setResponseValueAndErrors(res, "maximum", check.value, check.message, refs);
         }
         break;
       case "multipleOf":
-        setResponseValueAndErrors(
-          res,
-          "multipleOf",
-          check.value,
-          check.message,
-          refs
-        );
+        setResponseValueAndErrors(res, "multipleOf", check.value, check.message, refs);
         break;
     }
   }
@@ -4494,7 +3898,7 @@ function parseBigintDef(def, refs) {
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
 function parseBooleanDef() {
   return {
-    type: "boolean",
+    type: "boolean"
   };
 }
 
@@ -4513,7 +3917,7 @@ function parseDateDef(def, refs, overrideDateStrategy) {
   const strategy = overrideDateStrategy ?? refs.dateStrategy;
   if (Array.isArray(strategy)) {
     return {
-      anyOf: strategy.map((item, i2) => parseDateDef(def, refs, item)),
+      anyOf: strategy.map((item, i2) => parseDateDef(def, refs, item))
     };
   }
   switch (strategy) {
@@ -4521,12 +3925,12 @@ function parseDateDef(def, refs, overrideDateStrategy) {
     case "format:date-time":
       return {
         type: "string",
-        format: "date-time",
+        format: "date-time"
       };
     case "format:date":
       return {
         type: "string",
-        format: "date",
+        format: "date"
       };
     case "integer":
       return integerDateParser(def, refs);
@@ -4535,7 +3939,7 @@ function parseDateDef(def, refs, overrideDateStrategy) {
 var integerDateParser = (def, refs) => {
   const res = {
     type: "integer",
-    format: "unix-time",
+    format: "unix-time"
   };
   if (refs.target === "openApi3") {
     return res;
@@ -4571,45 +3975,41 @@ var integerDateParser = (def, refs) => {
 function parseDefaultDef(_def, refs) {
   return {
     ...parseDef(_def.innerType._def, refs),
-    default: _def.defaultValue(),
+    default: _def.defaultValue()
   };
 }
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
 function parseEffectsDef(_def, refs) {
-  return refs.effectStrategy === "input"
-    ? parseDef(_def.schema._def, refs)
-    : {};
+  return refs.effectStrategy === "input" ? parseDef(_def.schema._def, refs) : {};
 }
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
 function parseEnumDef(def) {
   return {
     type: "string",
-    enum: Array.from(def.values),
+    enum: Array.from(def.values)
   };
 }
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
 var isJsonSchema7AllOfType = (type) => {
-  if ("type" in type && type.type === "string") return false;
+  if ("type" in type && type.type === "string")
+    return false;
   return "allOf" in type;
 };
 function parseIntersectionDef(def, refs) {
   const allOf = [
     parseDef(def.left._def, {
       ...refs,
-      currentPath: [...refs.currentPath, "allOf", "0"],
+      currentPath: [...refs.currentPath, "allOf", "0"]
     }),
     parseDef(def.right._def, {
       ...refs,
-      currentPath: [...refs.currentPath, "allOf", "1"],
-    }),
+      currentPath: [...refs.currentPath, "allOf", "1"]
+    })
   ].filter((x2) => !!x2);
-  let unevaluatedProperties =
-    refs.target === "jsonSchema2019-09"
-      ? { unevaluatedProperties: false }
-      : void 0;
+  let unevaluatedProperties = refs.target === "jsonSchema2019-09" ? { unevaluatedProperties: false } : void 0;
   const mergedAllOf = [];
   allOf.forEach((schema) => {
     if (isJsonSchema7AllOfType(schema)) {
@@ -4619,10 +4019,7 @@ function parseIntersectionDef(def, refs) {
       }
     } else {
       let nestedSchema = schema;
-      if (
-        "additionalProperties" in schema &&
-        schema.additionalProperties === false
-      ) {
+      if ("additionalProperties" in schema && schema.additionalProperties === false) {
         const { additionalProperties, ...rest } = schema;
         nestedSchema = rest;
       } else {
@@ -4631,36 +4028,29 @@ function parseIntersectionDef(def, refs) {
       mergedAllOf.push(nestedSchema);
     }
   });
-  return mergedAllOf.length
-    ? {
-        allOf: mergedAllOf,
-        ...unevaluatedProperties,
-      }
-    : void 0;
+  return mergedAllOf.length ? {
+    allOf: mergedAllOf,
+    ...unevaluatedProperties
+  } : void 0;
 }
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
 function parseLiteralDef(def, refs) {
   const parsedType = typeof def.value;
-  if (
-    parsedType !== "bigint" &&
-    parsedType !== "number" &&
-    parsedType !== "boolean" &&
-    parsedType !== "string"
-  ) {
+  if (parsedType !== "bigint" && parsedType !== "number" && parsedType !== "boolean" && parsedType !== "string") {
     return {
-      type: Array.isArray(def.value) ? "array" : "object",
+      type: Array.isArray(def.value) ? "array" : "object"
     };
   }
   if (refs.target === "openApi3") {
     return {
       type: parsedType === "bigint" ? "integer" : parsedType,
-      enum: [def.value],
+      enum: [def.value]
     };
   }
   return {
     type: parsedType === "bigint" ? "integer" : parsedType,
-    const: def.value,
+    const: def.value
   };
 }
 
@@ -4676,8 +4066,7 @@ var zodPatterns = {
   /**
    * `a-z` was added to replicate /i flag
    */
-  email:
-    /^(?!\.)(?!.*\.\.)([a-zA-Z0-9_'+\-\.]*)[a-zA-Z0-9_+-]@([a-zA-Z0-9][a-zA-Z0-9\-]*\.)+[a-zA-Z]{2,}$/,
+  email: /^(?!\.)(?!.*\.\.)([a-zA-Z0-9_'+\-\.]*)[a-zA-Z0-9_+-]@([a-zA-Z0-9][a-zA-Z0-9\-]*\.)+[a-zA-Z]{2,}$/,
   /**
    * Constructed a valid Unicode RegExp
    *
@@ -4691,10 +4080,7 @@ var zodPatterns = {
    */
   emoji: () => {
     if (emojiRegex === void 0) {
-      emojiRegex = RegExp(
-        "^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$",
-        "u"
-      );
+      emojiRegex = RegExp("^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$", "u");
     }
     return emojiRegex;
   },
@@ -4706,48 +4092,29 @@ var zodPatterns = {
    * Unused
    */
   ipv4: /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/,
-  ipv4Cidr:
-    /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/,
+  ipv4Cidr: /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/,
   /**
    * Unused
    */
   ipv6: /^(([a-f0-9]{1,4}:){7}|::([a-f0-9]{1,4}:){0,6}|([a-f0-9]{1,4}:){1}:([a-f0-9]{1,4}:){0,5}|([a-f0-9]{1,4}:){2}:([a-f0-9]{1,4}:){0,4}|([a-f0-9]{1,4}:){3}:([a-f0-9]{1,4}:){0,3}|([a-f0-9]{1,4}:){4}:([a-f0-9]{1,4}:){0,2}|([a-f0-9]{1,4}:){5}:([a-f0-9]{1,4}:){0,1})([a-f0-9]{1,4}|(((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2}))\.){3}((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2})))$/,
-  ipv6Cidr:
-    /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/,
+  ipv6Cidr: /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/,
   base64: /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/,
-  base64url:
-    /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$/,
+  base64url: /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$/,
   nanoid: /^[a-zA-Z0-9_-]{21}$/,
-  jwt: /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/,
+  jwt: /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/
 };
 function parseStringDef(def, refs) {
   const res = {
-    type: "string",
+    type: "string"
   };
   if (def.checks) {
     for (const check of def.checks) {
       switch (check.kind) {
         case "min":
-          setResponseValueAndErrors(
-            res,
-            "minLength",
-            typeof res.minLength === "number"
-              ? Math.max(res.minLength, check.value)
-              : check.value,
-            check.message,
-            refs
-          );
+          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check.value) : check.value, check.message, refs);
           break;
         case "max":
-          setResponseValueAndErrors(
-            res,
-            "maxLength",
-            typeof res.maxLength === "number"
-              ? Math.min(res.maxLength, check.value)
-              : check.value,
-            check.message,
-            refs
-          );
+          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check.value) : check.value, check.message, refs);
           break;
         case "email":
           switch (refs.emailStrategy) {
@@ -4778,20 +4145,10 @@ function parseStringDef(def, refs) {
           addPattern(res, zodPatterns.cuid2, check.message, refs);
           break;
         case "startsWith":
-          addPattern(
-            res,
-            RegExp(`^${escapeLiteralCheckValue(check.value, refs)}`),
-            check.message,
-            refs
-          );
+          addPattern(res, RegExp(`^${escapeLiteralCheckValue(check.value, refs)}`), check.message, refs);
           break;
         case "endsWith":
-          addPattern(
-            res,
-            RegExp(`${escapeLiteralCheckValue(check.value, refs)}$`),
-            check.message,
-            refs
-          );
+          addPattern(res, RegExp(`${escapeLiteralCheckValue(check.value, refs)}$`), check.message, refs);
           break;
         case "datetime":
           addFormat(res, "date-time", check.message, refs);
@@ -4806,32 +4163,11 @@ function parseStringDef(def, refs) {
           addFormat(res, "duration", check.message, refs);
           break;
         case "length":
-          setResponseValueAndErrors(
-            res,
-            "minLength",
-            typeof res.minLength === "number"
-              ? Math.max(res.minLength, check.value)
-              : check.value,
-            check.message,
-            refs
-          );
-          setResponseValueAndErrors(
-            res,
-            "maxLength",
-            typeof res.maxLength === "number"
-              ? Math.min(res.maxLength, check.value)
-              : check.value,
-            check.message,
-            refs
-          );
+          setResponseValueAndErrors(res, "minLength", typeof res.minLength === "number" ? Math.max(res.minLength, check.value) : check.value, check.message, refs);
+          setResponseValueAndErrors(res, "maxLength", typeof res.maxLength === "number" ? Math.min(res.maxLength, check.value) : check.value, check.message, refs);
           break;
         case "includes": {
-          addPattern(
-            res,
-            RegExp(escapeLiteralCheckValue(check.value, refs)),
-            check.message,
-            refs
-          );
+          addPattern(res, RegExp(escapeLiteralCheckValue(check.value, refs)), check.message, refs);
           break;
         }
         case "ip": {
@@ -4872,13 +4208,7 @@ function parseStringDef(def, refs) {
               break;
             }
             case "contentEncoding:base64": {
-              setResponseValueAndErrors(
-                res,
-                "contentEncoding",
-                "base64",
-                check.message,
-                refs
-              );
+              setResponseValueAndErrors(res, "contentEncoding", "base64", check.message, refs);
               break;
             }
             case "pattern:zod": {
@@ -4897,13 +4227,9 @@ function parseStringDef(def, refs) {
   return res;
 }
 function escapeLiteralCheckValue(literal, refs) {
-  return refs.patternStrategy === "escape"
-    ? escapeNonAlphaNumeric(literal)
-    : literal;
+  return refs.patternStrategy === "escape" ? escapeNonAlphaNumeric(literal) : literal;
 }
-var ALPHA_NUMERIC = new Set(
-  "ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvxyz0123456789"
-);
+var ALPHA_NUMERIC = new Set("ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvxyz0123456789");
 function escapeNonAlphaNumeric(source) {
   let result = "";
   for (let i2 = 0; i2 < source.length; i2++) {
@@ -4922,10 +4248,9 @@ function addFormat(schema, value, message, refs) {
     if (schema.format) {
       schema.anyOf.push({
         format: schema.format,
-        ...(schema.errorMessage &&
-          refs.errorMessages && {
-            errorMessage: { format: schema.errorMessage.format },
-          }),
+        ...schema.errorMessage && refs.errorMessages && {
+          errorMessage: { format: schema.errorMessage.format }
+        }
       });
       delete schema.format;
       if (schema.errorMessage) {
@@ -4937,8 +4262,7 @@ function addFormat(schema, value, message, refs) {
     }
     schema.anyOf.push({
       format: value,
-      ...(message &&
-        refs.errorMessages && { errorMessage: { format: message } }),
+      ...message && refs.errorMessages && { errorMessage: { format: message } }
     });
   } else {
     setResponseValueAndErrors(schema, "format", value, message, refs);
@@ -4952,10 +4276,9 @@ function addPattern(schema, regex, message, refs) {
     if (schema.pattern) {
       schema.allOf.push({
         pattern: schema.pattern,
-        ...(schema.errorMessage &&
-          refs.errorMessages && {
-            errorMessage: { pattern: schema.errorMessage.pattern },
-          }),
+        ...schema.errorMessage && refs.errorMessages && {
+          errorMessage: { pattern: schema.errorMessage.pattern }
+        }
       });
       delete schema.pattern;
       if (schema.errorMessage) {
@@ -4967,17 +4290,10 @@ function addPattern(schema, regex, message, refs) {
     }
     schema.allOf.push({
       pattern: stringifyRegExpWithFlags(regex, refs),
-      ...(message &&
-        refs.errorMessages && { errorMessage: { pattern: message } }),
+      ...message && refs.errorMessages && { errorMessage: { pattern: message } }
     });
   } else {
-    setResponseValueAndErrors(
-      schema,
-      "pattern",
-      stringifyRegExpWithFlags(regex, refs),
-      message,
-      refs
-    );
+    setResponseValueAndErrors(schema, "pattern", stringifyRegExpWithFlags(regex, refs), message, refs);
   }
 }
 function stringifyRegExpWithFlags(regex, refs) {
@@ -4987,7 +4303,7 @@ function stringifyRegExpWithFlags(regex, refs) {
   const flags = {
     i: regex.flags.includes("i"),
     m: regex.flags.includes("m"),
-    s: regex.flags.includes("s"),
+    s: regex.flags.includes("s")
     // `.` matches newlines
   };
   const source = flags.i ? regex.source.toLowerCase() : regex.source;
@@ -5033,10 +4349,8 @@ function stringifyRegExpWithFlags(regex, refs) {
       }
     }
     if (flags.s && source[i2] === ".") {
-      pattern += inCharGroup
-        ? `${source[i2]}\r
-`
-        : `[${source[i2]}\r
+      pattern += inCharGroup ? `${source[i2]}\r
+` : `[${source[i2]}\r
 ]`;
       continue;
     }
@@ -5055,67 +4369,50 @@ function stringifyRegExpWithFlags(regex, refs) {
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
 function parseRecordDef(def, refs) {
   if (refs.target === "openAi") {
-    console.warn(
-      "Warning: OpenAI may not support records in schemas! Try an array of key-value pairs instead."
-    );
+    console.warn("Warning: OpenAI may not support records in schemas! Try an array of key-value pairs instead.");
   }
-  if (
-    refs.target === "openApi3" &&
-    def.keyType?._def.typeName === ZodFirstPartyTypeKind.ZodEnum
-  ) {
+  if (refs.target === "openApi3" && def.keyType?._def.typeName === ZodFirstPartyTypeKind.ZodEnum) {
     return {
       type: "object",
       required: def.keyType._def.values,
-      properties: def.keyType._def.values.reduce(
-        (acc, key) => ({
-          ...acc,
-          [key]:
-            parseDef(def.valueType._def, {
-              ...refs,
-              currentPath: [...refs.currentPath, "properties", key],
-            }) ?? {},
-        }),
-        {}
-      ),
-      additionalProperties: refs.rejectedAdditionalProperties,
+      properties: def.keyType._def.values.reduce((acc, key) => ({
+        ...acc,
+        [key]: parseDef(def.valueType._def, {
+          ...refs,
+          currentPath: [...refs.currentPath, "properties", key]
+        }) ?? {}
+      }), {}),
+      additionalProperties: refs.rejectedAdditionalProperties
     };
   }
   const schema = {
     type: "object",
-    additionalProperties:
-      parseDef(def.valueType._def, {
-        ...refs,
-        currentPath: [...refs.currentPath, "additionalProperties"],
-      }) ?? refs.allowedAdditionalProperties,
+    additionalProperties: parseDef(def.valueType._def, {
+      ...refs,
+      currentPath: [...refs.currentPath, "additionalProperties"]
+    }) ?? refs.allowedAdditionalProperties
   };
   if (refs.target === "openApi3") {
     return schema;
   }
-  if (
-    def.keyType?._def.typeName === ZodFirstPartyTypeKind.ZodString &&
-    def.keyType._def.checks?.length
-  ) {
+  if (def.keyType?._def.typeName === ZodFirstPartyTypeKind.ZodString && def.keyType._def.checks?.length) {
     const { type, ...keyType } = parseStringDef(def.keyType._def, refs);
     return {
       ...schema,
-      propertyNames: keyType,
+      propertyNames: keyType
     };
   } else if (def.keyType?._def.typeName === ZodFirstPartyTypeKind.ZodEnum) {
     return {
       ...schema,
       propertyNames: {
-        enum: def.keyType._def.values,
-      },
+        enum: def.keyType._def.values
+      }
     };
-  } else if (
-    def.keyType?._def.typeName === ZodFirstPartyTypeKind.ZodBranded &&
-    def.keyType._def.type._def.typeName === ZodFirstPartyTypeKind.ZodString &&
-    def.keyType._def.type._def.checks?.length
-  ) {
+  } else if (def.keyType?._def.typeName === ZodFirstPartyTypeKind.ZodBranded && def.keyType._def.type._def.typeName === ZodFirstPartyTypeKind.ZodString && def.keyType._def.type._def.checks?.length) {
     const { type, ...keyType } = parseBrandedDef(def.keyType._def, refs);
     return {
       ...schema,
-      propertyNames: keyType,
+      propertyNames: keyType
     };
   }
   return schema;
@@ -5126,16 +4423,14 @@ function parseMapDef(def, refs) {
   if (refs.mapStrategy === "record") {
     return parseRecordDef(def, refs);
   }
-  const keys =
-    parseDef(def.keyType._def, {
-      ...refs,
-      currentPath: [...refs.currentPath, "items", "items", "0"],
-    }) || {};
-  const values =
-    parseDef(def.valueType._def, {
-      ...refs,
-      currentPath: [...refs.currentPath, "items", "items", "1"],
-    }) || {};
+  const keys = parseDef(def.keyType._def, {
+    ...refs,
+    currentPath: [...refs.currentPath, "items", "items", "0"]
+  }) || {};
+  const values = parseDef(def.valueType._def, {
+    ...refs,
+    currentPath: [...refs.currentPath, "items", "items", "1"]
+  }) || {};
   return {
     type: "array",
     maxItems: 125,
@@ -5143,8 +4438,8 @@ function parseMapDef(def, refs) {
       type: "array",
       items: [keys, values],
       minItems: 2,
-      maxItems: 2,
-    },
+      maxItems: 2
+    }
   };
 }
 
@@ -5155,37 +4450,28 @@ function parseNativeEnumDef(def) {
     return typeof object[object[key]] !== "number";
   });
   const actualValues = actualKeys.map((key) => object[key]);
-  const parsedTypes = Array.from(
-    new Set(actualValues.map((values) => typeof values))
-  );
+  const parsedTypes = Array.from(new Set(actualValues.map((values) => typeof values)));
   return {
-    type:
-      parsedTypes.length === 1
-        ? parsedTypes[0] === "string"
-          ? "string"
-          : "number"
-        : ["string", "number"],
-    enum: actualValues,
+    type: parsedTypes.length === 1 ? parsedTypes[0] === "string" ? "string" : "number" : ["string", "number"],
+    enum: actualValues
   };
 }
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
 function parseNeverDef() {
   return {
-    not: {},
+    not: {}
   };
 }
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
 function parseNullDef(refs) {
-  return refs.target === "openApi3"
-    ? {
-        enum: ["null"],
-        nullable: true,
-      }
-    : {
-        type: "null",
-      };
+  return refs.target === "openApi3" ? {
+    enum: ["null"],
+    nullable: true
+  } : {
+    type: "null"
+  };
 }
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
@@ -5194,29 +4480,21 @@ var primitiveMappings = {
   ZodNumber: "number",
   ZodBigInt: "integer",
   ZodBoolean: "boolean",
-  ZodNull: "null",
+  ZodNull: "null"
 };
 function parseUnionDef(def, refs) {
-  if (refs.target === "openApi3") return asAnyOf(def, refs);
-  const options =
-    def.options instanceof Map ? Array.from(def.options.values()) : def.options;
-  if (
-    options.every(
-      (x2) =>
-        x2._def.typeName in primitiveMappings &&
-        (!x2._def.checks || !x2._def.checks.length)
-    )
-  ) {
+  if (refs.target === "openApi3")
+    return asAnyOf(def, refs);
+  const options = def.options instanceof Map ? Array.from(def.options.values()) : def.options;
+  if (options.every((x2) => x2._def.typeName in primitiveMappings && (!x2._def.checks || !x2._def.checks.length))) {
     const types = options.reduce((types2, x2) => {
       const type = primitiveMappings[x2._def.typeName];
       return type && !types2.includes(type) ? [...types2, type] : types2;
     }, []);
     return {
-      type: types.length > 1 ? types : types[0],
+      type: types.length > 1 ? types : types[0]
     };
-  } else if (
-    options.every((x2) => x2._def.typeName === "ZodLiteral" && !x2.description)
-  ) {
+  } else if (options.every((x2) => x2._def.typeName === "ZodLiteral" && !x2.description)) {
     const types = options.reduce((acc, x2) => {
       const type = typeof x2._def.value;
       switch (type) {
@@ -5227,7 +4505,8 @@ function parseUnionDef(def, refs) {
         case "bigint":
           return [...acc, "integer"];
         case "object":
-          if (x2._def.value === null) return [...acc, "null"];
+          if (x2._def.value === null)
+            return [...acc, "null"];
         case "symbol":
         case "undefined":
         case "function":
@@ -5241,71 +4520,56 @@ function parseUnionDef(def, refs) {
         type: uniqueTypes.length > 1 ? uniqueTypes : uniqueTypes[0],
         enum: options.reduce((acc, x2) => {
           return acc.includes(x2._def.value) ? acc : [...acc, x2._def.value];
-        }, []),
+        }, [])
       };
     }
   } else if (options.every((x2) => x2._def.typeName === "ZodEnum")) {
     return {
       type: "string",
-      enum: options.reduce(
-        (acc, x2) => [
-          ...acc,
-          ...x2._def.values.filter((x3) => !acc.includes(x3)),
-        ],
-        []
-      ),
+      enum: options.reduce((acc, x2) => [
+        ...acc,
+        ...x2._def.values.filter((x3) => !acc.includes(x3))
+      ], [])
     };
   }
   return asAnyOf(def, refs);
 }
 var asAnyOf = (def, refs) => {
-  const anyOf = (
-    def.options instanceof Map ? Array.from(def.options.values()) : def.options
-  )
-    .map((x2, i2) =>
-      parseDef(x2._def, {
-        ...refs,
-        currentPath: [...refs.currentPath, "anyOf", `${i2}`],
-      })
-    )
-    .filter(
-      (x2) =>
-        !!x2 &&
-        (!refs.strictUnions ||
-          (typeof x2 === "object" && Object.keys(x2).length > 0))
-    );
+  const anyOf = (def.options instanceof Map ? Array.from(def.options.values()) : def.options).map((x2, i2) => parseDef(x2._def, {
+    ...refs,
+    currentPath: [...refs.currentPath, "anyOf", `${i2}`]
+  })).filter((x2) => !!x2 && (!refs.strictUnions || typeof x2 === "object" && Object.keys(x2).length > 0));
   return anyOf.length ? { anyOf } : void 0;
 };
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
 function parseNullableDef(def, refs) {
-  if (
-    ["ZodString", "ZodNumber", "ZodBigInt", "ZodBoolean", "ZodNull"].includes(
-      def.innerType._def.typeName
-    ) &&
-    (!def.innerType._def.checks || !def.innerType._def.checks.length)
-  ) {
+  if (["ZodString", "ZodNumber", "ZodBigInt", "ZodBoolean", "ZodNull"].includes(def.innerType._def.typeName) && (!def.innerType._def.checks || !def.innerType._def.checks.length)) {
     if (refs.target === "openApi3") {
       return {
         type: primitiveMappings[def.innerType._def.typeName],
-        nullable: true,
+        nullable: true
       };
     }
     return {
-      type: [primitiveMappings[def.innerType._def.typeName], "null"],
+      type: [
+        primitiveMappings[def.innerType._def.typeName],
+        "null"
+      ]
     };
   }
   if (refs.target === "openApi3") {
     const base2 = parseDef(def.innerType._def, {
       ...refs,
-      currentPath: [...refs.currentPath],
+      currentPath: [...refs.currentPath]
     });
-    if (base2 && "$ref" in base2) return { allOf: [base2], nullable: true };
+    if (base2 && "$ref" in base2)
+      return { allOf: [base2], nullable: true };
     return base2 && { ...base2, nullable: true };
   }
   const base = parseDef(def.innerType._def, {
     ...refs,
-    currentPath: [...refs.currentPath, "anyOf", "0"],
+    currentPath: [...refs.currentPath, "anyOf", "0"]
   });
   return base && { anyOf: [base, { type: "null" }] };
 }
@@ -5313,9 +4577,10 @@ function parseNullableDef(def, refs) {
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
 function parseNumberDef(def, refs) {
   const res = {
-    type: "number",
+    type: "number"
   };
-  if (!def.checks) return res;
+  if (!def.checks)
+    return res;
   for (const check of def.checks) {
     switch (check.kind) {
       case "int":
@@ -5325,75 +4590,33 @@ function parseNumberDef(def, refs) {
       case "min":
         if (refs.target === "jsonSchema7") {
           if (check.inclusive) {
-            setResponseValueAndErrors(
-              res,
-              "minimum",
-              check.value,
-              check.message,
-              refs
-            );
+            setResponseValueAndErrors(res, "minimum", check.value, check.message, refs);
           } else {
-            setResponseValueAndErrors(
-              res,
-              "exclusiveMinimum",
-              check.value,
-              check.message,
-              refs
-            );
+            setResponseValueAndErrors(res, "exclusiveMinimum", check.value, check.message, refs);
           }
         } else {
           if (!check.inclusive) {
             res.exclusiveMinimum = true;
           }
-          setResponseValueAndErrors(
-            res,
-            "minimum",
-            check.value,
-            check.message,
-            refs
-          );
+          setResponseValueAndErrors(res, "minimum", check.value, check.message, refs);
         }
         break;
       case "max":
         if (refs.target === "jsonSchema7") {
           if (check.inclusive) {
-            setResponseValueAndErrors(
-              res,
-              "maximum",
-              check.value,
-              check.message,
-              refs
-            );
+            setResponseValueAndErrors(res, "maximum", check.value, check.message, refs);
           } else {
-            setResponseValueAndErrors(
-              res,
-              "exclusiveMaximum",
-              check.value,
-              check.message,
-              refs
-            );
+            setResponseValueAndErrors(res, "exclusiveMaximum", check.value, check.message, refs);
           }
         } else {
           if (!check.inclusive) {
             res.exclusiveMaximum = true;
           }
-          setResponseValueAndErrors(
-            res,
-            "maximum",
-            check.value,
-            check.message,
-            refs
-          );
+          setResponseValueAndErrors(res, "maximum", check.value, check.message, refs);
         }
         break;
       case "multipleOf":
-        setResponseValueAndErrors(
-          res,
-          "multipleOf",
-          check.value,
-          check.message,
-          refs
-        );
+        setResponseValueAndErrors(res, "multipleOf", check.value, check.message, refs);
         break;
     }
   }
@@ -5403,7 +4626,7 @@ function parseObjectDef(def, refs) {
   const forceOptionalIntoNullable = refs.target === "openAi";
   const result = {
     type: "object",
-    properties: {},
+    properties: {}
   };
   const required = [];
   const shape = def.shape();
@@ -5425,7 +4648,7 @@ function parseObjectDef(def, refs) {
     const parsedDef = parseDef(propDef._def, {
       ...refs,
       currentPath: [...refs.currentPath, "properties", propName],
-      propertyPath: [...refs.currentPath, "properties", propName],
+      propertyPath: [...refs.currentPath, "properties", propName]
     });
     if (parsedDef === void 0) {
       continue;
@@ -5448,7 +4671,7 @@ function decideAdditionalProperties(def, refs) {
   if (def.catchall._def.typeName !== "ZodNever") {
     return parseDef(def.catchall._def, {
       ...refs,
-      currentPath: [...refs.currentPath, "additionalProperties"],
+      currentPath: [...refs.currentPath, "additionalProperties"]
     });
   }
   switch (def.unknownKeys) {
@@ -5457,9 +4680,7 @@ function decideAdditionalProperties(def, refs) {
     case "strict":
       return refs.rejectedAdditionalProperties;
     case "strip":
-      return refs.removeAdditionalStrategy === "strict"
-        ? refs.allowedAdditionalProperties
-        : refs.rejectedAdditionalProperties;
+      return refs.removeAdditionalStrategy === "strict" ? refs.allowedAdditionalProperties : refs.rejectedAdditionalProperties;
   }
 }
 function safeIsOptional(schema) {
@@ -5477,18 +4698,16 @@ var parseOptionalDef = (def, refs) => {
   }
   const innerSchema = parseDef(def.innerType._def, {
     ...refs,
-    currentPath: [...refs.currentPath, "anyOf", "1"],
+    currentPath: [...refs.currentPath, "anyOf", "1"]
   });
-  return innerSchema
-    ? {
-        anyOf: [
-          {
-            not: {},
-          },
-          innerSchema,
-        ],
-      }
-    : {};
+  return innerSchema ? {
+    anyOf: [
+      {
+        not: {}
+      },
+      innerSchema
+    ]
+  } : {};
 };
 
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
@@ -5500,14 +4719,14 @@ var parsePipelineDef = (def, refs) => {
   }
   const a2 = parseDef(def.in._def, {
     ...refs,
-    currentPath: [...refs.currentPath, "allOf", "0"],
+    currentPath: [...refs.currentPath, "allOf", "0"]
   });
   const b = parseDef(def.out._def, {
     ...refs,
-    currentPath: [...refs.currentPath, "allOf", a2 ? "1" : "0"],
+    currentPath: [...refs.currentPath, "allOf", a2 ? "1" : "0"]
   });
   return {
-    allOf: [a2, b].filter((x2) => x2 !== void 0),
+    allOf: [a2, b].filter((x2) => x2 !== void 0)
   };
 };
 
@@ -5520,30 +4739,18 @@ function parsePromiseDef(def, refs) {
 function parseSetDef(def, refs) {
   const items = parseDef(def.valueType._def, {
     ...refs,
-    currentPath: [...refs.currentPath, "items"],
+    currentPath: [...refs.currentPath, "items"]
   });
   const schema = {
     type: "array",
     uniqueItems: true,
-    items,
+    items
   };
   if (def.minSize) {
-    setResponseValueAndErrors(
-      schema,
-      "minItems",
-      def.minSize.value,
-      def.minSize.message,
-      refs
-    );
+    setResponseValueAndErrors(schema, "minItems", def.minSize.value, def.minSize.message, refs);
   }
   if (def.maxSize) {
-    setResponseValueAndErrors(
-      schema,
-      "maxItems",
-      def.maxSize.value,
-      def.maxSize.message,
-      refs
-    );
+    setResponseValueAndErrors(schema, "maxItems", def.maxSize.value, def.maxSize.message, refs);
   }
   return schema;
 }
@@ -5554,32 +4761,24 @@ function parseTupleDef(def, refs) {
     return {
       type: "array",
       minItems: def.items.length,
-      items: def.items
-        .map((x2, i2) =>
-          parseDef(x2._def, {
-            ...refs,
-            currentPath: [...refs.currentPath, "items", `${i2}`],
-          })
-        )
-        .reduce((acc, x2) => (x2 === void 0 ? acc : [...acc, x2]), []),
+      items: def.items.map((x2, i2) => parseDef(x2._def, {
+        ...refs,
+        currentPath: [...refs.currentPath, "items", `${i2}`]
+      })).reduce((acc, x2) => x2 === void 0 ? acc : [...acc, x2], []),
       additionalItems: parseDef(def.rest._def, {
         ...refs,
-        currentPath: [...refs.currentPath, "additionalItems"],
-      }),
+        currentPath: [...refs.currentPath, "additionalItems"]
+      })
     };
   } else {
     return {
       type: "array",
       minItems: def.items.length,
       maxItems: def.items.length,
-      items: def.items
-        .map((x2, i2) =>
-          parseDef(x2._def, {
-            ...refs,
-            currentPath: [...refs.currentPath, "items", `${i2}`],
-          })
-        )
-        .reduce((acc, x2) => (x2 === void 0 ? acc : [...acc, x2]), []),
+      items: def.items.map((x2, i2) => parseDef(x2._def, {
+        ...refs,
+        currentPath: [...refs.currentPath, "items", `${i2}`]
+      })).reduce((acc, x2) => x2 === void 0 ? acc : [...acc, x2], [])
     };
   }
 }
@@ -5587,7 +4786,7 @@ function parseTupleDef(def, refs) {
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
 function parseUndefinedDef() {
   return {
-    not: {},
+    not: {}
   };
 }
 
@@ -5681,12 +4880,7 @@ var selectParser = (def, typeName, refs) => {
 function parseDef(def, refs, forceResolution = false) {
   const seenItem = refs.seen.get(def);
   if (refs.override) {
-    const overrideResult = refs.override?.(
-      def,
-      refs,
-      seenItem,
-      forceResolution
-    );
+    const overrideResult = refs.override?.(def, refs, seenItem, forceResolution);
     if (overrideResult !== ignoreOverride) {
       return overrideResult;
     }
@@ -5700,10 +4894,7 @@ function parseDef(def, refs, forceResolution = false) {
   const newItem = { def, path: refs.currentPath, jsonSchema: void 0 };
   refs.seen.set(def, newItem);
   const jsonSchemaOrGetter = selectParser(def, def.typeName, refs);
-  const jsonSchema =
-    typeof jsonSchemaOrGetter === "function"
-      ? parseDef(jsonSchemaOrGetter(), refs)
-      : jsonSchemaOrGetter;
+  const jsonSchema = typeof jsonSchemaOrGetter === "function" ? parseDef(jsonSchemaOrGetter(), refs) : jsonSchemaOrGetter;
   if (jsonSchema) {
     addMeta(def, refs, jsonSchema);
   }
@@ -5723,13 +4914,8 @@ var get$ref = (item, refs) => {
       return { $ref: getRelativePath(refs.currentPath, item.path) };
     case "none":
     case "seen": {
-      if (
-        item.path.length < refs.currentPath.length &&
-        item.path.every((value, index) => refs.currentPath[index] === value)
-      ) {
-        console.warn(
-          `Recursive reference detected at ${refs.currentPath.join("/")}! Defaulting to any`
-        );
+      if (item.path.length < refs.currentPath.length && item.path.every((value, index) => refs.currentPath[index] === value)) {
+        console.warn(`Recursive reference detected at ${refs.currentPath.join("/")}! Defaulting to any`);
         return {};
       }
       return refs.$refStrategy === "seen" ? {} : void 0;
@@ -5739,7 +4925,8 @@ var get$ref = (item, refs) => {
 var getRelativePath = (pathA, pathB) => {
   let i2 = 0;
   for (; i2 < pathA.length && i2 < pathB.length; i2++) {
-    if (pathA[i2] !== pathB[i2]) break;
+    if (pathA[i2] !== pathB[i2])
+      break;
   }
   return [(pathA.length - i2).toString(), ...pathB.slice(i2)].join("/");
 };
@@ -5756,84 +4943,43 @@ var addMeta = (def, refs, jsonSchema) => {
 // ../../node_modules/.pnpm/zod-to-json-schema@3.24.4_zod@3.24.2/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
 var zodToJsonSchema = (schema, options) => {
   const refs = getRefs(options);
-  const definitions =
-    typeof options === "object" && options.definitions
-      ? Object.entries(options.definitions).reduce(
-          (acc, [name2, schema2]) => ({
-            ...acc,
-            [name2]:
-              parseDef(
-                schema2._def,
-                {
-                  ...refs,
-                  currentPath: [...refs.basePath, refs.definitionPath, name2],
-                },
-                true
-              ) ?? {},
-          }),
-          {}
-        )
-      : void 0;
-  const name =
-    typeof options === "string"
-      ? options
-      : options?.nameStrategy === "title"
-        ? void 0
-        : options?.name;
-  const main =
-    parseDef(
-      schema._def,
-      name === void 0
-        ? refs
-        : {
-            ...refs,
-            currentPath: [...refs.basePath, refs.definitionPath, name],
-          },
-      false
-    ) ?? {};
-  const title =
-    typeof options === "object" &&
-    options.name !== void 0 &&
-    options.nameStrategy === "title"
-      ? options.name
-      : void 0;
+  const definitions = typeof options === "object" && options.definitions ? Object.entries(options.definitions).reduce((acc, [name2, schema2]) => ({
+    ...acc,
+    [name2]: parseDef(schema2._def, {
+      ...refs,
+      currentPath: [...refs.basePath, refs.definitionPath, name2]
+    }, true) ?? {}
+  }), {}) : void 0;
+  const name = typeof options === "string" ? options : options?.nameStrategy === "title" ? void 0 : options?.name;
+  const main = parseDef(schema._def, name === void 0 ? refs : {
+    ...refs,
+    currentPath: [...refs.basePath, refs.definitionPath, name]
+  }, false) ?? {};
+  const title = typeof options === "object" && options.name !== void 0 && options.nameStrategy === "title" ? options.name : void 0;
   if (title !== void 0) {
     main.title = title;
   }
-  const combined =
-    name === void 0
-      ? definitions
-        ? {
-            ...main,
-            [refs.definitionPath]: definitions,
-          }
-        : main
-      : {
-          $ref: [
-            ...(refs.$refStrategy === "relative" ? [] : refs.basePath),
-            refs.definitionPath,
-            name,
-          ].join("/"),
-          [refs.definitionPath]: {
-            ...definitions,
-            [name]: main,
-          },
-        };
+  const combined = name === void 0 ? definitions ? {
+    ...main,
+    [refs.definitionPath]: definitions
+  } : main : {
+    $ref: [
+      ...refs.$refStrategy === "relative" ? [] : refs.basePath,
+      refs.definitionPath,
+      name
+    ].join("/"),
+    [refs.definitionPath]: {
+      ...definitions,
+      [name]: main
+    }
+  };
   if (refs.target === "jsonSchema7") {
     combined.$schema = "http://json-schema.org/draft-07/schema#";
   } else if (refs.target === "jsonSchema2019-09" || refs.target === "openAi") {
     combined.$schema = "https://json-schema.org/draft/2019-09/schema#";
   }
-  if (
-    refs.target === "openAi" &&
-    ("anyOf" in combined ||
-      "oneOf" in combined ||
-      "allOf" in combined ||
-      ("type" in combined && Array.isArray(combined.type)))
-  ) {
-    console.warn(
-      "Warning: OpenAI may not support schemas with unions as roots! Try wrapping it in an object property."
-    );
+  if (refs.target === "openAi" && ("anyOf" in combined || "oneOf" in combined || "allOf" in combined || "type" in combined && Array.isArray(combined.type))) {
+    console.warn("Warning: OpenAI may not support schemas with unions as roots! Try wrapping it in an object property.");
   }
   return combined;
 };
@@ -5844,7 +4990,7 @@ function handleError(error, defaultMessage) {
   console.error(defaultMessage, error);
   const apiError = error;
   throw new HTTPException(apiError.status || 500, {
-    message: apiError.message || defaultMessage,
+    message: apiError.message || defaultMessage
   });
 }
 function errorHandler(err, c2) {
@@ -5871,36 +5017,26 @@ async function getAgentsHandler(c2) {
   try {
     const mastra = c2.get("mastra");
     const agents = mastra.getAgents();
-    const serializedAgents = Object.entries(agents).reduce(
-      (acc, [_id, _agent]) => {
-        const agent = _agent;
-        const serializedAgentTools = Object.entries(agent?.tools || {}).reduce(
-          (acc2, [key, tool]) => {
-            const _tool = tool;
-            acc2[key] = {
-              ..._tool,
-              inputSchema: _tool.inputSchema
-                ? stringify(esm_default(_tool.inputSchema))
-                : void 0,
-              outputSchema: _tool.outputSchema
-                ? stringify(esm_default(_tool.outputSchema))
-                : void 0,
-            };
-            return acc2;
-          },
-          {}
-        );
-        acc[_id] = {
-          name: agent.name,
-          instructions: agent.instructions,
-          tools: serializedAgentTools,
-          provider: agent.llm?.getProvider(),
-          modelId: agent.llm?.getModelId(),
+    const serializedAgents = Object.entries(agents).reduce((acc, [_id, _agent]) => {
+      const agent = _agent;
+      const serializedAgentTools = Object.entries(agent?.tools || {}).reduce((acc2, [key, tool]) => {
+        const _tool = tool;
+        acc2[key] = {
+          ..._tool,
+          inputSchema: _tool.inputSchema ? stringify(esm_default(_tool.inputSchema)) : void 0,
+          outputSchema: _tool.outputSchema ? stringify(esm_default(_tool.outputSchema)) : void 0
         };
-        return acc;
-      },
-      {}
-    );
+        return acc2;
+      }, {});
+      acc[_id] = {
+        name: agent.name,
+        instructions: agent.instructions,
+        tools: serializedAgentTools,
+        provider: agent.llm?.getProvider(),
+        modelId: agent.llm?.getModelId()
+      };
+      return acc;
+    }, {});
     return c2.json(serializedAgents);
   } catch (error) {
     return handleError(error, "Error getting agents");
@@ -5914,28 +5050,21 @@ async function getAgentByIdHandler(c2) {
     if (!agent) {
       throw new HTTPException(404, { message: "Agent not found" });
     }
-    const serializedAgentTools = Object.entries(agent?.tools || {}).reduce(
-      (acc, [key, tool]) => {
-        const _tool = tool;
-        acc[key] = {
-          ..._tool,
-          inputSchema: _tool.inputSchema
-            ? stringify(esm_default(_tool.inputSchema))
-            : void 0,
-          outputSchema: _tool.outputSchema
-            ? stringify(esm_default(_tool.outputSchema))
-            : void 0,
-        };
-        return acc;
-      },
-      {}
-    );
+    const serializedAgentTools = Object.entries(agent?.tools || {}).reduce((acc, [key, tool]) => {
+      const _tool = tool;
+      acc[key] = {
+        ..._tool,
+        inputSchema: _tool.inputSchema ? stringify(esm_default(_tool.inputSchema)) : void 0,
+        outputSchema: _tool.outputSchema ? stringify(esm_default(_tool.outputSchema)) : void 0
+      };
+      return acc;
+    }, {});
     return c2.json({
       name: agent.name,
       instructions: agent.instructions,
       tools: serializedAgentTools,
       provider: agent.llm?.getProvider(),
-      modelId: agent.llm?.getModelId(),
+      modelId: agent.llm?.getModelId()
     });
   } catch (error) {
     return handleError(error, "Error getting agent");
@@ -5946,13 +5075,12 @@ async function getEvalsByAgentIdHandler(c2) {
     const mastra = c2.get("mastra");
     const agentId = c2.req.param("agentId");
     const agent = mastra.getAgent(agentId);
-    const evals =
-      (await mastra.storage?.getEvalsByAgentName?.(agent.name, "test")) || [];
+    const evals = await mastra.storage?.getEvalsByAgentName?.(agent.name, "test") || [];
     return c2.json({
       id: agentId,
       name: agent.name,
       instructions: agent.instructions,
-      evals,
+      evals
     });
   } catch (error) {
     return handleError(error, "Error getting test evals");
@@ -5963,13 +5091,12 @@ async function getLiveEvalsByAgentIdHandler(c2) {
     const mastra = c2.get("mastra");
     const agentId = c2.req.param("agentId");
     const agent = mastra.getAgent(agentId);
-    const evals =
-      (await mastra.storage?.getEvalsByAgentName?.(agent.name, "live")) || [];
+    const evals = await mastra.storage?.getEvalsByAgentName?.(agent.name, "live") || [];
     return c2.json({
       id: agentId,
       name: agent.name,
       instructions: agent.instructions,
-      evals,
+      evals
     });
   } catch (error) {
     return handleError(error, "Error getting live evals");
@@ -5983,24 +5110,10 @@ async function generateHandler(c2) {
     if (!agent) {
       throw new HTTPException(404, { message: "Agent not found" });
     }
-    const {
-      messages,
-      threadId,
-      resourceid,
-      resourceId,
-      output,
-      runId,
-      ...rest
-    } = await c2.req.json();
+    const { messages, threadId, resourceid, resourceId, output, runId, ...rest } = await c2.req.json();
     validateBody({ messages });
     const finalResourceId = resourceId ?? resourceid;
-    const result = await agent.generate(messages, {
-      threadId,
-      resourceId: finalResourceId,
-      output,
-      runId,
-      ...rest,
-    });
+    const result = await agent.generate(messages, { threadId, resourceId: finalResourceId, output, runId, ...rest });
     return c2.json(result);
   } catch (error) {
     return handleError(error, "Error generating from agent");
@@ -6014,15 +5127,7 @@ async function streamGenerateHandler(c2) {
     if (!agent) {
       throw new HTTPException(404, { message: "Agent not found" });
     }
-    const {
-      messages,
-      threadId,
-      resourceid,
-      resourceId,
-      output,
-      runId,
-      ...rest
-    } = await c2.req.json();
+    const { messages, threadId, resourceid, resourceId, output, runId, ...rest } = await c2.req.json();
     validateBody({ messages });
     const finalResourceId = resourceId ?? resourceid;
     const streamResult = await agent.stream(messages, {
@@ -6030,17 +5135,15 @@ async function streamGenerateHandler(c2) {
       resourceId: finalResourceId,
       output,
       runId,
-      ...rest,
+      ...rest
     });
-    const streamResponse = output
-      ? streamResult.toTextStreamResponse()
-      : streamResult.toDataStreamResponse({
-          sendUsage: true,
-          sendReasoning: true,
-          getErrorMessage: (error) => {
-            return `An error occurred while processing your request. ${error instanceof Error ? error.message : JSON.stringify(error)}`;
-          },
-        });
+    const streamResponse = output ? streamResult.toTextStreamResponse() : streamResult.toDataStreamResponse({
+      sendUsage: true,
+      sendReasoning: true,
+      getErrorMessage: (error) => {
+        return `An error occurred while processing your request. ${error instanceof Error ? error.message : JSON.stringify(error)}`;
+      }
+    });
     return streamResponse;
   } catch (error) {
     return handleError(error, "Error streaming from agent");
@@ -6050,10 +5153,7 @@ async function setAgentInstructionsHandler(c2) {
   try {
     const isPlayground = c2.get("playground") === true;
     if (!isPlayground) {
-      return c2.json(
-        { error: "This API is only available in the playground environment" },
-        403
-      );
+      return c2.json({ error: "This API is only available in the playground environment" }, 403);
     }
     const agentId = c2.req.param("agentId");
     const { instructions } = await c2.req.json();
@@ -6068,7 +5168,7 @@ async function setAgentInstructionsHandler(c2) {
     agent.__updateInstructions(instructions);
     return c2.json(
       {
-        instructions,
+        instructions
       },
       200
     );
@@ -6087,15 +5187,15 @@ function handleClientsRefresh(c2) {
       c2.req.raw.signal.addEventListener("abort", () => {
         clients.delete(controller);
       });
-    },
+    }
   });
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*",
-    },
+      "Access-Control-Allow-Origin": "*"
+    }
   });
 }
 function handleTriggerClientsRefresh(c2) {
@@ -6141,7 +5241,7 @@ async function getLogTransports(c2) {
     const logger2 = mastra.getLogger();
     const transports = logger2.transports;
     return c2.json({
-      transports: Object.keys(transports),
+      transports: Object.keys(transports)
     });
   } catch (e2) {
     return handleError(e2, "Error getting log Transports ");
@@ -6178,9 +5278,7 @@ async function getThreadsHandler(c2) {
     if (!resourceid) {
       throw new HTTPException(400, { message: "Resource ID is required" });
     }
-    const threads = await memory.getThreadsByResourceId({
-      resourceId: resourceid,
-    });
+    const threads = await memory.getThreadsByResourceId({ resourceId: resourceid });
     return c2.json(threads);
   } catch (error) {
     return handleError(error, "Error getting threads");
@@ -6216,14 +5314,9 @@ async function saveMessagesHandler(c2) {
     const processedMessages = messages.map((message) => ({
       ...message,
       id: memory.generateId(),
-      createdAt: message.createdAt
-        ? new Date(message.createdAt)
-        : /* @__PURE__ */ new Date(),
+      createdAt: message.createdAt ? new Date(message.createdAt) : /* @__PURE__ */ new Date()
     }));
-    const result = await memory.saveMessages({
-      messages: processedMessages,
-      memoryConfig: {},
-    });
+    const result = await memory.saveMessages({ messages: processedMessages, memoryConfig: {} });
     return c2.json(result);
   } catch (error) {
     return handleError(error, "Error saving messages");
@@ -6237,12 +5330,7 @@ async function createThreadHandler(c2) {
       throw new HTTPException(400, { message: "Memory is not initialized" });
     }
     validateBody({ resourceid });
-    const result = await memory.createThread({
-      resourceId: resourceid,
-      title,
-      metadata,
-      threadId,
-    });
+    const result = await memory.createThread({ resourceId: resourceid, title, metadata, threadId });
     return c2.json(result);
   } catch (error) {
     return handleError(error, "Error saving thread to memory");
@@ -6267,7 +5355,7 @@ async function updateThreadHandler(c2) {
       metadata: metadata || thread.metadata,
       resourceId: resourceid || thread.resourceId,
       createdAt: thread.createdAt,
-      updatedAt,
+      updatedAt
     };
     const result = await memory.saveThread({ thread: updatedThread });
     return c2.json(result);
@@ -6323,12 +5411,12 @@ async function getNetworksHandler(c2) {
         agents: agents.map((agent) => ({
           name: agent.name,
           provider: agent.llm?.getProvider(),
-          modelId: agent.llm?.getModelId(),
+          modelId: agent.llm?.getModelId()
         })),
         routingModel: {
           provider: routingAgent.llm?.getProvider(),
-          modelId: routingAgent.llm?.getModelId(),
-        },
+          modelId: routingAgent.llm?.getModelId()
+        }
       };
     });
     return c2.json(serializedNetworks);
@@ -6357,12 +5445,12 @@ async function getNetworkByIdHandler(c2) {
       agents: agents.map((agent) => ({
         name: agent.name,
         provider: agent.llm?.getProvider(),
-        modelId: agent.llm?.getModelId(),
+        modelId: agent.llm?.getModelId()
       })),
       routingModel: {
         provider: routingAgent.llm?.getProvider(),
-        modelId: routingAgent.llm?.getModelId(),
-      },
+        modelId: routingAgent.llm?.getModelId()
+      }
     };
     return c2.json(serializedNetwork);
   } catch (error) {
@@ -6377,24 +5465,10 @@ async function generateHandler2(c2) {
     if (!network) {
       throw new HTTPException(404, { message: "Network not found" });
     }
-    const {
-      messages,
-      threadId,
-      resourceid,
-      resourceId,
-      output,
-      runId,
-      ...rest
-    } = await c2.req.json();
+    const { messages, threadId, resourceid, resourceId, output, runId, ...rest } = await c2.req.json();
     validateBody({ messages });
     const finalResourceId = resourceId ?? resourceid;
-    const result = await network.generate(messages, {
-      threadId,
-      resourceId: finalResourceId,
-      output,
-      runId,
-      ...rest,
-    });
+    const result = await network.generate(messages, { threadId, resourceId: finalResourceId, output, runId, ...rest });
     return c2.json(result);
   } catch (error) {
     return handleError(error, "Error generating from network");
@@ -6408,15 +5482,7 @@ async function streamGenerateHandler2(c2) {
     if (!network) {
       throw new HTTPException(404, { message: "Network not found" });
     }
-    const {
-      messages,
-      threadId,
-      resourceid,
-      resourceId,
-      output,
-      runId,
-      ...rest
-    } = await c2.req.json();
+    const { messages, threadId, resourceid, resourceId, output, runId, ...rest } = await c2.req.json();
     validateBody({ messages });
     const finalResourceId = resourceId ?? resourceid;
     const streamResult = await network.stream(messages, {
@@ -6424,17 +5490,15 @@ async function streamGenerateHandler2(c2) {
       resourceId: finalResourceId,
       output,
       runId,
-      ...rest,
+      ...rest
     });
-    const streamResponse = output
-      ? streamResult.toTextStreamResponse()
-      : streamResult.toDataStreamResponse({
-          sendUsage: true,
-          sendReasoning: true,
-          getErrorMessage: (error) => {
-            return `An error occurred while processing your request. ${error instanceof Error ? error.message : JSON.stringify(error)}`;
-          },
-        });
+    const streamResponse = output ? streamResult.toTextStreamResponse() : streamResult.toDataStreamResponse({
+      sendUsage: true,
+      sendReasoning: true,
+      getErrorMessage: (error) => {
+        return `An error occurred while processing your request. ${error instanceof Error ? error.message : JSON.stringify(error)}`;
+      }
+    });
     return streamResponse;
   } catch (error) {
     return handleError(error, "Error streaming from network");
@@ -6445,10 +5509,7 @@ async function generateSystemPromptHandler(c2) {
     const agentId = c2.req.param("agentId");
     const isPlayground = c2.get("playground") === true;
     if (!isPlayground) {
-      return c2.json(
-        { error: "This API is only available in the playground environment" },
-        403
-      );
+      return c2.json({ error: "This API is only available in the playground environment" }, 403);
     }
     const { instructions, comment } = await c2.req.json();
     if (!instructions) {
@@ -6461,17 +5522,13 @@ async function generateSystemPromptHandler(c2) {
     }
     let evalSummary = "";
     try {
-      const testEvals =
-        (await mastra.storage?.getEvalsByAgentName?.(agent.name, "test")) || [];
-      const liveEvals =
-        (await mastra.storage?.getEvalsByAgentName?.(agent.name, "live")) || [];
+      const testEvals = await mastra.storage?.getEvalsByAgentName?.(agent.name, "test") || [];
+      const liveEvals = await mastra.storage?.getEvalsByAgentName?.(agent.name, "live") || [];
       const evalsMapped = [...testEvals, ...liveEvals].filter(
-        ({ instructions: evalInstructions }) =>
-          evalInstructions === instructions
+        ({ instructions: evalInstructions }) => evalInstructions === instructions
       );
-      evalSummary = evalsMapped
-        .map(
-          ({ input, output, result: result2 }) => `
+      evalSummary = evalsMapped.map(
+        ({ input, output, result: result2 }) => `
           Input: ${input}
 
           Output: ${output}
@@ -6479,8 +5536,7 @@ async function generateSystemPromptHandler(c2) {
           Result: ${JSON.stringify(result2)}
 
         `
-        )
-        .join("");
+      ).join("");
     } catch (error) {
       mastra.getLogger().error(`Error fetching evals`, { error });
     }
@@ -6534,26 +5590,22 @@ async function generateSystemPromptHandler(c2) {
     const systemPromptAgent = new Agent$1({
       name: "system-prompt-enhancer",
       instructions: ENHANCE_SYSTEM_PROMPT_INSTRUCTIONS,
-      model: agent.llm?.getModel(),
+      model: agent.llm?.getModel()
     });
     const result = await systemPromptAgent.generate(
       `
             We need to improve the system prompt. 
             Current: ${instructions}
             ${comment ? `User feedback: ${comment}` : ""}
-            ${
-              evalSummary
-                ? `
+            ${evalSummary ? `
 Evaluation Results:
-${evalSummary}`
-                : ""
-            }
+${evalSummary}` : ""}
         `,
       {
         output: z.object({
           new_prompt: z.string(),
-          explanation: z.string(),
-        }),
+          explanation: z.string()
+        })
       }
     );
     return c2.json(result?.object || {});
@@ -6579,20 +5631,18 @@ async function getTelemetryHandler(c2) {
     if (!storage) {
       throw new HTTPException(400, { message: "Storage is not initialized" });
     }
-    const attributes = attribute
-      ? Object.fromEntries(
-          (Array.isArray(attribute) ? attribute : [attribute]).map((attr) => {
-            const [key, value] = attr.split(":");
-            return [key, value];
-          })
-        )
-      : void 0;
+    const attributes = attribute ? Object.fromEntries(
+      (Array.isArray(attribute) ? attribute : [attribute]).map((attr) => {
+        const [key, value] = attr.split(":");
+        return [key, value];
+      })
+    ) : void 0;
     const traces = await storage.getTraces({
       name,
       scope,
       page: Number(page ?? 0),
       perPage: Number(perPage ?? 100),
-      attributes,
+      attributes
     });
     return c2.json({ traces });
   } catch (error) {
@@ -6605,19 +5655,18 @@ async function getToolsHandler(c2) {
     if (!tools) {
       return c2.json({});
     }
-    const serializedTools = Object.entries(tools).reduce((acc, [id, _tool]) => {
-      const tool = _tool;
-      acc[id] = {
-        ...tool,
-        inputSchema: tool.inputSchema
-          ? stringify(esm_default(tool.inputSchema))
-          : void 0,
-        outputSchema: tool.outputSchema
-          ? stringify(esm_default(tool.outputSchema))
-          : void 0,
-      };
-      return acc;
-    }, {});
+    const serializedTools = Object.entries(tools).reduce(
+      (acc, [id, _tool]) => {
+        const tool = _tool;
+        acc[id] = {
+          ...tool,
+          inputSchema: tool.inputSchema ? stringify(esm_default(tool.inputSchema)) : void 0,
+          outputSchema: tool.outputSchema ? stringify(esm_default(tool.outputSchema)) : void 0
+        };
+        return acc;
+      },
+      {}
+    );
     return c2.json(serializedTools);
   } catch (error) {
     return handleError(error, "Error getting tools");
@@ -6627,20 +5676,14 @@ async function getToolByIdHandler(c2) {
   try {
     const tools = c2.get("tools");
     const toolId = c2.req.param("toolId");
-    const tool = Object.values(tools || {}).find(
-      (tool2) => tool2.id === toolId
-    );
+    const tool = Object.values(tools || {}).find((tool2) => tool2.id === toolId);
     if (!tool) {
       throw new HTTPException(404, { message: "Tool not found" });
     }
     const serializedTool = {
       ...tool,
-      inputSchema: tool.inputSchema
-        ? stringify(esm_default(tool.inputSchema))
-        : void 0,
-      outputSchema: tool.outputSchema
-        ? stringify(esm_default(tool.outputSchema))
-        : void 0,
+      inputSchema: tool.inputSchema ? stringify(esm_default(tool.inputSchema)) : void 0,
+      outputSchema: tool.outputSchema ? stringify(esm_default(tool.outputSchema)) : void 0
     };
     return c2.json(serializedTool);
   } catch (error) {
@@ -6651,9 +5694,7 @@ function executeToolHandler(tools) {
   return async (c2) => {
     try {
       const toolId = decodeURIComponent(c2.req.param("toolId"));
-      const tool = Object.values(tools || {}).find(
-        (tool2) => tool2.id === toolId
-      );
+      const tool = Object.values(tools || {}).find((tool2) => tool2.id === toolId);
       if (!tool) {
         return c2.json({ error: "Tool not found" }, 404);
       }
@@ -6669,7 +5710,7 @@ function executeToolHandler(tools) {
       const result = await tool.execute({
         context: data,
         mastra,
-        runId: mastra.runId,
+        runId: mastra.runId
       });
       return c2.json(result);
     } catch (error) {
@@ -6683,9 +5724,7 @@ async function executeAgentToolHandler(c2) {
     const agentId = c2.req.param("agentId");
     const toolId = c2.req.param("toolId");
     const agent = mastra.getAgent(agentId);
-    const tool = Object.values(agent?.tools || {}).find(
-      (tool2) => tool2.id === toolId
-    );
+    const tool = Object.values(agent?.tools || {}).find((tool2) => tool2.id === toolId);
     if (!tool) {
       throw new HTTPException(404, { message: "Tool not found" });
     }
@@ -6700,7 +5739,7 @@ async function executeAgentToolHandler(c2) {
     const result = await tool.execute({
       context: data,
       mastra,
-      runId: agentId,
+      runId: agentId
     });
     return c2.json(result);
   } catch (error) {
@@ -6710,9 +5749,7 @@ async function executeAgentToolHandler(c2) {
 var getVector = (c2, vectorName) => {
   const vector = c2.get("mastra").getVector(vectorName);
   if (!vector) {
-    throw new HTTPException(404, {
-      message: `Vector store ${vectorName} not found`,
-    });
+    throw new HTTPException(404, { message: `Vector store ${vectorName} not found` });
   }
   return vector;
 };
@@ -6721,10 +5758,7 @@ async function upsertVectors(c2) {
     const vectorName = c2.req.param("vectorName");
     const { indexName, vectors, metadata, ids } = await c2.req.json();
     if (!indexName || !vectors || !Array.isArray(vectors)) {
-      throw new HTTPException(400, {
-        message:
-          "Invalid request body. indexName and vectors array are required.",
-      });
+      throw new HTTPException(400, { message: "Invalid request body. indexName and vectors array are required." });
     }
     const vector = getVector(c2, vectorName);
     const result = await vector.upsert({ indexName, vectors, metadata, ids });
@@ -6739,15 +5773,11 @@ async function createIndex(c2) {
     const { indexName, dimension, metric } = await c2.req.json();
     if (!indexName || typeof dimension !== "number" || dimension <= 0) {
       throw new HTTPException(400, {
-        message:
-          "Invalid request body. indexName and positive dimension number are required.",
+        message: "Invalid request body. indexName and positive dimension number are required."
       });
     }
     if (metric && !["cosine", "euclidean", "dotproduct"].includes(metric)) {
-      throw new HTTPException(400, {
-        message:
-          "Invalid metric. Must be one of: cosine, euclidean, dotproduct",
-      });
+      throw new HTTPException(400, { message: "Invalid metric. Must be one of: cosine, euclidean, dotproduct" });
     }
     const vector = getVector(c2, vectorName);
     await vector.createIndex({ indexName, dimension, metric });
@@ -6759,27 +5789,12 @@ async function createIndex(c2) {
 async function queryVectors(c2) {
   try {
     const vectorName = c2.req.param("vectorName");
-    const {
-      indexName,
-      queryVector,
-      topK = 10,
-      filter,
-      includeVector = false,
-    } = await c2.req.json();
+    const { indexName, queryVector, topK = 10, filter, includeVector = false } = await c2.req.json();
     if (!indexName || !queryVector || !Array.isArray(queryVector)) {
-      throw new HTTPException(400, {
-        message:
-          "Invalid request body. indexName and queryVector array are required.",
-      });
+      throw new HTTPException(400, { message: "Invalid request body. indexName and queryVector array are required." });
     }
     const vector = getVector(c2, vectorName);
-    const results = await vector.query({
-      indexName,
-      queryVector,
-      topK,
-      filter,
-      includeVector,
-    });
+    const results = await vector.query({ indexName, queryVector, topK, filter, includeVector });
     return c2.json({ results });
   } catch (error) {
     return handleError(error, "Error querying vectors");
@@ -6807,7 +5822,7 @@ async function describeIndex(c2) {
     return c2.json({
       dimension: stats.dimension,
       count: stats.count,
-      metric: stats.metric?.toLowerCase(),
+      metric: stats.metric?.toLowerCase()
     });
   } catch (error) {
     return handleError(error, "Error describing index");
@@ -6836,9 +5851,7 @@ async function getSpeakersHandler(c2) {
       throw new HTTPException(404, { message: "Agent not found" });
     }
     if (!agent.voice) {
-      throw new HTTPException(400, {
-        message: "Agent does not have voice capabilities",
-      });
+      throw new HTTPException(400, { message: "Agent does not have voice capabilities" });
     }
     const speakers = await agent.getSpeakers();
     return c2.json(speakers);
@@ -6855,9 +5868,7 @@ async function speakHandler(c2) {
       throw new HTTPException(404, { message: "Agent not found" });
     }
     if (!agent.voice) {
-      throw new HTTPException(400, {
-        message: "Agent does not have voice capabilities",
-      });
+      throw new HTTPException(400, { message: "Agent does not have voice capabilities" });
     }
     const { input, options } = await c2.req.json();
     await validateBody({ input });
@@ -6879,9 +5890,7 @@ async function listenHandler(c2) {
       throw new HTTPException(404, { message: "Agent not found" });
     }
     if (!agent.voice) {
-      throw new HTTPException(400, {
-        message: "Agent does not have voice capabilities",
-      });
+      throw new HTTPException(400, { message: "Agent does not have voice capabilities" });
     }
     const formData = await c2.req.formData();
     const audioFile = formData.get("audio");
@@ -6912,35 +5921,26 @@ async function getWorkflowsHandler(c2) {
   try {
     const mastra = c2.get("mastra");
     const workflows = mastra.getWorkflows({ serialized: false });
-    const _workflows = Object.entries(workflows).reduce(
-      (acc, [key, workflow]) => {
-        acc[key] = {
-          stepGraph: workflow.stepGraph,
-          stepSubscriberGraph: workflow.stepSubscriberGraph,
-          serializedStepGraph: workflow.serializedStepGraph,
-          serializedStepSubscriberGraph: workflow.serializedStepSubscriberGraph,
-          name: workflow.name,
-          triggerSchema: workflow.triggerSchema
-            ? stringify(esm_default(workflow.triggerSchema))
-            : void 0,
-          steps: Object.entries(workflow.steps).reduce((acc2, [key2, step]) => {
-            const _step = step;
-            acc2[key2] = {
-              ..._step,
-              inputSchema: _step.inputSchema
-                ? stringify(esm_default(_step.inputSchema))
-                : void 0,
-              outputSchema: _step.outputSchema
-                ? stringify(esm_default(_step.outputSchema))
-                : void 0,
-            };
-            return acc2;
-          }, {}),
-        };
-        return acc;
-      },
-      {}
-    );
+    const _workflows = Object.entries(workflows).reduce((acc, [key, workflow]) => {
+      acc[key] = {
+        stepGraph: workflow.stepGraph,
+        stepSubscriberGraph: workflow.stepSubscriberGraph,
+        serializedStepGraph: workflow.serializedStepGraph,
+        serializedStepSubscriberGraph: workflow.serializedStepSubscriberGraph,
+        name: workflow.name,
+        triggerSchema: workflow.triggerSchema ? stringify(esm_default(workflow.triggerSchema)) : void 0,
+        steps: Object.entries(workflow.steps).reduce((acc2, [key2, step]) => {
+          const _step = step;
+          acc2[key2] = {
+            ..._step,
+            inputSchema: _step.inputSchema ? stringify(esm_default(_step.inputSchema)) : void 0,
+            outputSchema: _step.outputSchema ? stringify(esm_default(_step.outputSchema)) : void 0
+          };
+          return acc2;
+        }, {})
+      };
+      return acc;
+    }, {});
     return c2.json(_workflows);
   } catch (error) {
     return handleError(error, "Error getting workflows");
@@ -6955,34 +5955,24 @@ async function getWorkflowByIdHandler(c2) {
     const stepGraph = workflow.stepGraph;
     const stepSubscriberGraph = workflow.stepSubscriberGraph;
     const serializedStepGraph = workflow.serializedStepGraph;
-    const serializedStepSubscriberGraph =
-      workflow.serializedStepSubscriberGraph;
-    const serializedSteps = Object.entries(workflow.steps).reduce(
-      (acc, [key, step]) => {
-        const _step = step;
-        acc[key] = {
-          ..._step,
-          inputSchema: _step.inputSchema
-            ? stringify(esm_default(_step.inputSchema))
-            : void 0,
-          outputSchema: _step.outputSchema
-            ? stringify(esm_default(_step.outputSchema))
-            : void 0,
-        };
-        return acc;
-      },
-      {}
-    );
+    const serializedStepSubscriberGraph = workflow.serializedStepSubscriberGraph;
+    const serializedSteps = Object.entries(workflow.steps).reduce((acc, [key, step]) => {
+      const _step = step;
+      acc[key] = {
+        ..._step,
+        inputSchema: _step.inputSchema ? stringify(esm_default(_step.inputSchema)) : void 0,
+        outputSchema: _step.outputSchema ? stringify(esm_default(_step.outputSchema)) : void 0
+      };
+      return acc;
+    }, {});
     return c2.json({
       name: workflow.name,
-      triggerSchema: triggerSchema
-        ? stringify(esm_default(triggerSchema))
-        : void 0,
+      triggerSchema: triggerSchema ? stringify(esm_default(triggerSchema)) : void 0,
       steps: serializedSteps,
       stepGraph,
       stepSubscriberGraph,
       serializedStepGraph,
-      serializedStepSubscriberGraph,
+      serializedStepSubscriberGraph
     });
   } catch (error) {
     return handleError(error, "Error getting workflow");
@@ -7003,7 +5993,7 @@ async function startAsyncWorkflowHandler(c2) {
       throw new HTTPException(404, { message: "Workflow run not found" });
     }
     const result = await run.start({
-      triggerData: body,
+      triggerData: body
     });
     return c2.json(result);
   } catch (error) {
@@ -7037,7 +6027,7 @@ async function startWorkflowRunHandler(c2) {
       throw new HTTPException(404, { message: "Workflow run not found" });
     }
     run.start({
-      triggerData: body,
+      triggerData: body
     });
     return c2.json({ message: "Workflow run started" });
   } catch (e2) {
@@ -7052,9 +6042,7 @@ async function watchWorkflowHandler(c2) {
     const workflow = mastra.getWorkflow(workflowId);
     const runId = c2.req.query("runId");
     if (!runId) {
-      throw new HTTPException(400, {
-        message: "runId required to watch workflow",
-      });
+      throw new HTTPException(400, { message: "runId required to watch workflow" });
     }
     const run = workflow.getRun(runId);
     if (!run) {
@@ -7064,25 +6052,9 @@ async function watchWorkflowHandler(c2) {
       c2,
       async (stream) => {
         return new Promise((_resolve, _reject) => {
-          let unwatch = run.watch(
-            ({
-              activePaths,
-              context,
-              runId: runId2,
-              timestamp,
-              suspendedSteps,
-            }) => {
-              void stream.write(
-                JSON.stringify({
-                  activePaths,
-                  context,
-                  runId: runId2,
-                  timestamp,
-                  suspendedSteps,
-                }) + ""
-              );
-            }
-          );
+          let unwatch = run.watch(({ activePaths, context, runId: runId2, timestamp, suspendedSteps }) => {
+            void stream.write(JSON.stringify({ activePaths, context, runId: runId2, timestamp, suspendedSteps }) + "");
+          });
           stream.onAbort(() => {
             unwatch?.();
           });
@@ -7106,9 +6078,7 @@ async function resumeAsyncWorkflowHandler(c2) {
     const runId = c2.req.query("runId");
     const { stepId, context } = await c2.req.json();
     if (!runId) {
-      throw new HTTPException(400, {
-        message: "runId required to resume workflow",
-      });
+      throw new HTTPException(400, { message: "runId required to resume workflow" });
     }
     const run = workflow.getRun(runId);
     if (!run) {
@@ -7116,7 +6086,7 @@ async function resumeAsyncWorkflowHandler(c2) {
     }
     const result = await run.resume({
       stepId,
-      context,
+      context
     });
     return c2.json(result);
   } catch (error) {
@@ -7131,9 +6101,7 @@ async function resumeWorkflowHandler(c2) {
     const runId = c2.req.query("runId");
     const { stepId, context } = await c2.req.json();
     if (!runId) {
-      throw new HTTPException(400, {
-        message: "runId required to resume workflow",
-      });
+      throw new HTTPException(400, { message: "runId required to resume workflow" });
     }
     const run = workflow.getRun(runId);
     if (!run) {
@@ -7141,7 +6109,7 @@ async function resumeWorkflowHandler(c2) {
     }
     run.resume({
       stepId,
-      context,
+      context
     });
     return c2.json({ message: "Workflow run resumed" });
   } catch (error) {
@@ -7260,13 +6228,11 @@ var html2 = `
 async function createHonoServer(mastra, options = {}) {
   const app = new Hono();
   const mastraToolsPaths = process.env.MASTRA_TOOLS_PATH;
-  const toolImports = mastraToolsPaths
-    ? await Promise.all(
-        mastraToolsPaths.split(",").map(async (toolPath) => {
-          return import(pathToFileURL(toolPath).href);
-        })
-      )
-    : [];
+  const toolImports = mastraToolsPaths ? await Promise.all(
+    mastraToolsPaths.split(",").map(async (toolPath) => {
+      return import(pathToFileURL(toolPath).href);
+    })
+  ) : [];
   const tools = toolImports.reduce((acc, toolModule) => {
     Object.entries(toolModule).forEach(([key, tool]) => {
       acc[key] = tool;
@@ -7281,7 +6247,7 @@ async function createHonoServer(mastra, options = {}) {
       allowHeaders: ["Content-Type", "Authorization"],
       exposeHeaders: ["Content-Length", "X-Requested-With"],
       credentials: false,
-      maxAge: 3600,
+      maxAge: 3600
     })
   );
   if (options.apiReqLogs) {
@@ -7303,7 +6269,7 @@ async function createHonoServer(mastra, options = {}) {
   const bodyLimitOptions = {
     maxSize: 4.5 * 1024 * 1024,
     // 4.5 MB,
-    onError: (c2) => c2.json({ error: "Request body too large" }, 413),
+    onError: (c2) => c2.json({ error: "Request body too large" }, 413)
   };
   app.get(
     "/api",
@@ -7312,9 +6278,9 @@ async function createHonoServer(mastra, options = {}) {
       tags: ["system"],
       responses: {
         200: {
-          description: "Success",
-        },
-      },
+          description: "Success"
+        }
+      }
     }),
     rootHandler
   );
@@ -7325,9 +6291,9 @@ async function createHonoServer(mastra, options = {}) {
       tags: ["agents"],
       responses: {
         200: {
-          description: "List of all agents",
-        },
-      },
+          description: "List of all agents"
+        }
+      }
     }),
     getAgentsHandler
   );
@@ -7338,9 +6304,9 @@ async function createHonoServer(mastra, options = {}) {
       tags: ["networks"],
       responses: {
         200: {
-          description: "List of all networks",
-        },
-      },
+          description: "List of all networks"
+        }
+      }
     }),
     getNetworksHandler
   );
@@ -7354,17 +6320,17 @@ async function createHonoServer(mastra, options = {}) {
           name: "networkId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Network details",
+          description: "Network details"
         },
         404: {
-          description: "Network not found",
-        },
-      },
+          description: "Network not found"
+        }
+      }
     }),
     getNetworkByIdHandler
   );
@@ -7379,8 +6345,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "networkId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -7394,26 +6360,25 @@ async function createHonoServer(mastra, options = {}) {
                     { type: "string" },
                     {
                       type: "array",
-                      items: { type: "object" },
-                    },
+                      items: { type: "object" }
+                    }
                   ],
-                  description:
-                    "Input for the network, can be a string or an array of CoreMessage objects",
-                },
+                  description: "Input for the network, can be a string or an array of CoreMessage objects"
+                }
               },
-              required: ["input"],
-            },
-          },
-        },
+              required: ["input"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Generated response",
+          description: "Generated response"
         },
         404: {
-          description: "Network not found",
-        },
-      },
+          description: "Network not found"
+        }
+      }
     }),
     generateHandler2
   );
@@ -7428,8 +6393,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "networkId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -7443,26 +6408,25 @@ async function createHonoServer(mastra, options = {}) {
                     { type: "string" },
                     {
                       type: "array",
-                      items: { type: "object" },
-                    },
+                      items: { type: "object" }
+                    }
                   ],
-                  description:
-                    "Input for the network, can be a string or an array of CoreMessage objects",
-                },
+                  description: "Input for the network, can be a string or an array of CoreMessage objects"
+                }
               },
-              required: ["input"],
-            },
-          },
-        },
+              required: ["input"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Generated response",
+          description: "Generated response"
         },
         404: {
-          description: "Network not found",
-        },
-      },
+          description: "Network not found"
+        }
+      }
     }),
     streamGenerateHandler2
   );
@@ -7476,17 +6440,17 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Agent details",
+          description: "Agent details"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     getAgentByIdHandler
   );
@@ -7500,14 +6464,14 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "List of evals",
-        },
-      },
+          description: "List of evals"
+        }
+      }
     }),
     getEvalsByAgentIdHandler
   );
@@ -7521,14 +6485,14 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "List of evals",
-        },
-      },
+          description: "List of evals"
+        }
+      }
     }),
     getLiveEvalsByAgentIdHandler
   );
@@ -7543,8 +6507,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -7555,35 +6519,31 @@ async function createHonoServer(mastra, options = {}) {
               properties: {
                 messages: {
                   type: "array",
-                  items: { type: "object" },
+                  items: { type: "object" }
                 },
                 threadId: { type: "string" },
-                resourceId: {
-                  type: "string",
-                  description: "The resource ID for the conversation",
-                },
+                resourceId: { type: "string", description: "The resource ID for the conversation" },
                 resourceid: {
                   type: "string",
-                  description:
-                    "The resource ID for the conversation (deprecated, use resourceId instead)",
-                  deprecated: true,
+                  description: "The resource ID for the conversation (deprecated, use resourceId instead)",
+                  deprecated: true
                 },
                 runId: { type: "string" },
-                output: { type: "object" },
+                output: { type: "object" }
               },
-              required: ["messages"],
-            },
-          },
-        },
+              required: ["messages"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Generated response",
+          description: "Generated response"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     generateHandler
   );
@@ -7598,8 +6558,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -7610,35 +6570,31 @@ async function createHonoServer(mastra, options = {}) {
               properties: {
                 messages: {
                   type: "array",
-                  items: { type: "object" },
+                  items: { type: "object" }
                 },
                 threadId: { type: "string" },
-                resourceId: {
-                  type: "string",
-                  description: "The resource ID for the conversation",
-                },
+                resourceId: { type: "string", description: "The resource ID for the conversation" },
                 resourceid: {
                   type: "string",
-                  description:
-                    "The resource ID for the conversation (deprecated, use resourceId instead)",
-                  deprecated: true,
+                  description: "The resource ID for the conversation (deprecated, use resourceId instead)",
+                  deprecated: true
                 },
                 runId: { type: "string" },
-                output: { type: "object" },
+                output: { type: "object" }
               },
-              required: ["messages"],
-            },
-          },
-        },
+              required: ["messages"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Streamed response",
+          description: "Streamed response"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     streamGenerateHandler
   );
@@ -7653,8 +6609,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -7665,25 +6621,25 @@ async function createHonoServer(mastra, options = {}) {
               properties: {
                 instructions: {
                   type: "string",
-                  description: "New instructions for the agent",
-                },
+                  description: "New instructions for the agent"
+                }
               },
-              required: ["instructions"],
-            },
-          },
-        },
+              required: ["instructions"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Instructions updated successfully",
+          description: "Instructions updated successfully"
         },
         403: {
-          description: "Not allowed in non-playground environment",
+          description: "Not allowed in non-playground environment"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     setAgentInstructionsHandler
   );
@@ -7699,9 +6655,8 @@ async function createHonoServer(mastra, options = {}) {
           in: "path",
           required: true,
           schema: { type: "string" },
-          description:
-            "ID of the agent whose model will be used for prompt generation",
-        },
+          description: "ID of the agent whose model will be used for prompt generation"
+        }
       ],
       requestBody: {
         required: true,
@@ -7712,17 +6667,17 @@ async function createHonoServer(mastra, options = {}) {
               properties: {
                 instructions: {
                   type: "string",
-                  description: "Instructions to generate a system prompt from",
+                  description: "Instructions to generate a system prompt from"
                 },
                 comment: {
                   type: "string",
-                  description: "Optional comment for the enhanced prompt",
-                },
+                  description: "Optional comment for the enhanced prompt"
+                }
               },
-              required: ["instructions"],
-            },
-          },
-        },
+              required: ["instructions"]
+            }
+          }
+        }
       },
       responses: {
         200: {
@@ -7734,27 +6689,27 @@ async function createHonoServer(mastra, options = {}) {
                 properties: {
                   explanation: {
                     type: "string",
-                    description: "Detailed analysis of the instructions",
+                    description: "Detailed analysis of the instructions"
                   },
                   new_prompt: {
                     type: "string",
-                    description: "The enhanced system prompt",
-                  },
-                },
-              },
-            },
-          },
+                    description: "The enhanced system prompt"
+                  }
+                }
+              }
+            }
+          }
         },
         400: {
-          description: "Missing or invalid request parameters",
+          description: "Missing or invalid request parameters"
         },
         404: {
-          description: "Agent not found",
+          description: "Agent not found"
         },
         500: {
-          description: "Internal server error or model response parsing error",
-        },
-      },
+          description: "Internal server error or model response parsing error"
+        }
+      }
     }),
     generateSystemPromptHandler
   );
@@ -7762,27 +6717,20 @@ async function createHonoServer(mastra, options = {}) {
     "/api/agents/:agentId/speakers",
     async (c2, next) => {
       c2.header("Deprecation", "true");
-      c2.header(
-        "Warning",
-        '299 - "This endpoint is deprecated, use /api/agents/:agentId/voice/speakers instead"'
-      );
-      c2.header(
-        "Link",
-        '</api/agents/:agentId/voice/speakers>; rel="successor-version"'
-      );
+      c2.header("Warning", '299 - "This endpoint is deprecated, use /api/agents/:agentId/voice/speakers instead"');
+      c2.header("Link", '</api/agents/:agentId/voice/speakers>; rel="successor-version"');
       return next();
     },
     h({
-      description:
-        "[DEPRECATED] Use /api/agents/:agentId/voice/speakers instead. Get available speakers for an agent",
+      description: "[DEPRECATED] Use /api/agents/:agentId/voice/speakers instead. Get available speakers for an agent",
       tags: ["agents"],
       parameters: [
         {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
@@ -7793,24 +6741,23 @@ async function createHonoServer(mastra, options = {}) {
                 type: "array",
                 items: {
                   type: "object",
-                  description:
-                    "Speaker information depending on the voice provider",
+                  description: "Speaker information depending on the voice provider",
                   properties: {
-                    voiceId: { type: "string" },
+                    voiceId: { type: "string" }
                   },
-                  additionalProperties: true,
-                },
-              },
-            },
-          },
+                  additionalProperties: true
+                }
+              }
+            }
+          }
         },
         400: {
-          description: "Agent does not have voice capabilities",
+          description: "Agent does not have voice capabilities"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     getSpeakersHandler
   );
@@ -7824,8 +6771,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
@@ -7836,24 +6783,23 @@ async function createHonoServer(mastra, options = {}) {
                 type: "array",
                 items: {
                   type: "object",
-                  description:
-                    "Speaker information depending on the voice provider",
+                  description: "Speaker information depending on the voice provider",
                   properties: {
-                    voiceId: { type: "string" },
+                    voiceId: { type: "string" }
                   },
-                  additionalProperties: true,
-                },
-              },
-            },
-          },
+                  additionalProperties: true
+                }
+              }
+            }
+          }
         },
         400: {
-          description: "Agent does not have voice capabilities",
+          description: "Agent does not have voice capabilities"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     getSpeakersHandler
   );
@@ -7862,27 +6808,20 @@ async function createHonoServer(mastra, options = {}) {
     bodyLimit(bodyLimitOptions),
     async (c2, next) => {
       c2.header("Deprecation", "true");
-      c2.header(
-        "Warning",
-        '299 - "This endpoint is deprecated, use /api/agents/:agentId/voice/speak instead"'
-      );
-      c2.header(
-        "Link",
-        '</api/agents/:agentId/voice/speak>; rel="successor-version"'
-      );
+      c2.header("Warning", '299 - "This endpoint is deprecated, use /api/agents/:agentId/voice/speak instead"');
+      c2.header("Link", '</api/agents/:agentId/voice/speak>; rel="successor-version"');
       return next();
     },
     h({
-      description:
-        "[DEPRECATED] Use /api/agents/:agentId/voice/speak instead. Convert text to speech using the agent's voice provider",
+      description: "[DEPRECATED] Use /api/agents/:agentId/voice/speak instead. Convert text to speech using the agent's voice provider",
       tags: ["agents"],
       parameters: [
         {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -7893,25 +6832,24 @@ async function createHonoServer(mastra, options = {}) {
               properties: {
                 text: {
                   type: "string",
-                  description: "Text to convert to speech",
+                  description: "Text to convert to speech"
                 },
                 options: {
                   type: "object",
-                  description:
-                    "Provider-specific options for speech generation",
+                  description: "Provider-specific options for speech generation",
                   properties: {
                     speaker: {
                       type: "string",
-                      description: "Speaker ID to use for speech generation",
-                    },
+                      description: "Speaker ID to use for speech generation"
+                    }
                   },
-                  additionalProperties: true,
-                },
+                  additionalProperties: true
+                }
               },
-              required: ["text"],
-            },
-          },
-        },
+              required: ["text"]
+            }
+          }
+        }
       },
       responses: {
         200: {
@@ -7920,25 +6858,24 @@ async function createHonoServer(mastra, options = {}) {
             "audio/mpeg": {
               schema: {
                 format: "binary",
-                description: "Audio stream containing the generated speech",
-              },
+                description: "Audio stream containing the generated speech"
+              }
             },
             "audio/*": {
               schema: {
                 format: "binary",
-                description: "Audio stream depending on the provider",
-              },
-            },
-          },
+                description: "Audio stream depending on the provider"
+              }
+            }
+          }
         },
         400: {
-          description:
-            "Agent does not have voice capabilities or invalid request",
+          description: "Agent does not have voice capabilities or invalid request"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     speakHandler
   );
@@ -7953,8 +6890,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -7965,31 +6902,29 @@ async function createHonoServer(mastra, options = {}) {
               properties: {
                 input: {
                   type: "string",
-                  description: "Text to convert to speech",
+                  description: "Text to convert to speech"
                 },
                 options: {
                   type: "object",
-                  description:
-                    "Provider-specific options for speech generation",
+                  description: "Provider-specific options for speech generation",
                   properties: {
                     speaker: {
                       type: "string",
-                      description: "Speaker ID to use for speech generation",
+                      description: "Speaker ID to use for speech generation"
                     },
                     options: {
                       type: "object",
-                      description:
-                        "Provider-specific options for speech generation",
-                      additionalProperties: true,
-                    },
+                      description: "Provider-specific options for speech generation",
+                      additionalProperties: true
+                    }
                   },
-                  additionalProperties: true,
-                },
+                  additionalProperties: true
+                }
               },
-              required: ["text"],
-            },
-          },
-        },
+              required: ["text"]
+            }
+          }
+        }
       },
       responses: {
         200: {
@@ -7998,25 +6933,24 @@ async function createHonoServer(mastra, options = {}) {
             "audio/mpeg": {
               schema: {
                 format: "binary",
-                description: "Audio stream containing the generated speech",
-              },
+                description: "Audio stream containing the generated speech"
+              }
             },
             "audio/*": {
               schema: {
                 format: "binary",
-                description: "Audio stream depending on the provider",
-              },
-            },
-          },
+                description: "Audio stream depending on the provider"
+              }
+            }
+          }
         },
         400: {
-          description:
-            "Agent does not have voice capabilities or invalid request",
+          description: "Agent does not have voice capabilities or invalid request"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     speakHandler
   );
@@ -8024,32 +6958,25 @@ async function createHonoServer(mastra, options = {}) {
     "/api/agents/:agentId/listen",
     bodyLimit({
       ...bodyLimitOptions,
-      maxSize: 10 * 1024 * 1024,
+      maxSize: 10 * 1024 * 1024
       // 10 MB for audio files
     }),
     async (c2, next) => {
       c2.header("Deprecation", "true");
-      c2.header(
-        "Warning",
-        '299 - "This endpoint is deprecated, use /api/agents/:agentId/voice/listen instead"'
-      );
-      c2.header(
-        "Link",
-        '</api/agents/:agentId/voice/listen>; rel="successor-version"'
-      );
+      c2.header("Warning", '299 - "This endpoint is deprecated, use /api/agents/:agentId/voice/listen instead"');
+      c2.header("Link", '</api/agents/:agentId/voice/listen>; rel="successor-version"');
       return next();
     },
     h({
-      description:
-        "[DEPRECATED] Use /api/agents/:agentId/voice/listen instead. Convert speech to text using the agent's voice provider. Additional provider-specific options can be passed as query parameters.",
+      description: "[DEPRECATED] Use /api/agents/:agentId/voice/listen instead. Convert speech to text using the agent's voice provider. Additional provider-specific options can be passed as query parameters.",
       tags: ["agents"],
       parameters: [
         {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8057,11 +6984,10 @@ async function createHonoServer(mastra, options = {}) {
           "audio/mpeg": {
             schema: {
               format: "binary",
-              description:
-                "Audio data stream to transcribe (supports various formats depending on provider like mp3, wav, webm, flac)",
-            },
-          },
-        },
+              description: "Audio data stream to transcribe (supports various formats depending on provider like mp3, wav, webm, flac)"
+            }
+          }
+        }
       },
       responses: {
         200: {
@@ -8073,21 +6999,20 @@ async function createHonoServer(mastra, options = {}) {
                 properties: {
                   text: {
                     type: "string",
-                    description: "Transcribed text",
-                  },
-                },
-              },
-            },
-          },
+                    description: "Transcribed text"
+                  }
+                }
+              }
+            }
+          }
         },
         400: {
-          description:
-            "Agent does not have voice capabilities or invalid request",
+          description: "Agent does not have voice capabilities or invalid request"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     listenHandler
   );
@@ -8095,20 +7020,19 @@ async function createHonoServer(mastra, options = {}) {
     "/api/agents/:agentId/voice/listen",
     bodyLimit({
       ...bodyLimitOptions,
-      maxSize: 10 * 1024 * 1024,
+      maxSize: 10 * 1024 * 1024
       // 10 MB for audio files
     }),
     h({
-      description:
-        "Convert speech to text using the agent's voice provider. Additional provider-specific options can be passed as query parameters.",
+      description: "Convert speech to text using the agent's voice provider. Additional provider-specific options can be passed as query parameters.",
       tags: ["agents"],
       parameters: [
         {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8121,18 +7045,17 @@ async function createHonoServer(mastra, options = {}) {
                 audio: {
                   type: "string",
                   format: "binary",
-                  description:
-                    "Audio data stream to transcribe (supports various formats depending on provider like mp3, wav, webm, flac)",
+                  description: "Audio data stream to transcribe (supports various formats depending on provider like mp3, wav, webm, flac)"
                 },
                 options: {
                   type: "object",
                   description: "Provider-specific options for speech-to-text",
-                  additionalProperties: true,
-                },
-              },
-            },
-          },
-        },
+                  additionalProperties: true
+                }
+              }
+            }
+          }
+        }
       },
       responses: {
         200: {
@@ -8144,21 +7067,20 @@ async function createHonoServer(mastra, options = {}) {
                 properties: {
                   text: {
                     type: "string",
-                    description: "Transcribed text",
-                  },
-                },
-              },
-            },
-          },
+                    description: "Transcribed text"
+                  }
+                }
+              }
+            }
+          }
         },
         400: {
-          description:
-            "Agent does not have voice capabilities or invalid request",
+          description: "Agent does not have voice capabilities or invalid request"
         },
         404: {
-          description: "Agent not found",
-        },
-      },
+          description: "Agent not found"
+        }
+      }
     }),
     listenHandler
   );
@@ -8173,14 +7095,14 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "toolId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8189,21 +7111,21 @@ async function createHonoServer(mastra, options = {}) {
             schema: {
               type: "object",
               properties: {
-                data: { type: "object" },
+                data: { type: "object" }
               },
-              required: ["data"],
-            },
-          },
-        },
+              required: ["data"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Tool execution result",
+          description: "Tool execution result"
         },
         404: {
-          description: "Tool or agent not found",
-        },
-      },
+          description: "Tool or agent not found"
+        }
+      }
     }),
     executeAgentToolHandler
   );
@@ -8217,14 +7139,14 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Memory status",
-        },
-      },
+          description: "Memory status"
+        }
+      }
     }),
     getMemoryStatusHandler
   );
@@ -8238,20 +7160,20 @@ async function createHonoServer(mastra, options = {}) {
           name: "resourceid",
           in: "query",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "agentId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "List of all threads",
-        },
-      },
+          description: "List of all threads"
+        }
+      }
     }),
     getThreadsHandler
   );
@@ -8265,23 +7187,23 @@ async function createHonoServer(mastra, options = {}) {
           name: "threadId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "agentId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Thread details",
+          description: "Thread details"
         },
         404: {
-          description: "Thread not found",
-        },
-      },
+          description: "Thread not found"
+        }
+      }
     }),
     getThreadByIdHandler
   );
@@ -8295,20 +7217,20 @@ async function createHonoServer(mastra, options = {}) {
           name: "threadId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "agentId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "List of messages",
-        },
-      },
+          description: "List of messages"
+        }
+      }
     }),
     getMessagesHandler
   );
@@ -8323,8 +7245,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8336,17 +7258,17 @@ async function createHonoServer(mastra, options = {}) {
                 title: { type: "string" },
                 metadata: { type: "object" },
                 resourceid: { type: "string" },
-                threadId: { type: "string" },
-              },
-            },
-          },
-        },
+                threadId: { type: "string" }
+              }
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Created thread",
-        },
-      },
+          description: "Created thread"
+        }
+      }
     }),
     createThreadHandler
   );
@@ -8360,31 +7282,31 @@ async function createHonoServer(mastra, options = {}) {
           name: "threadId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "agentId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
         content: {
           "application/json": {
-            schema: { type: "object" },
-          },
-        },
+            schema: { type: "object" }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Updated thread",
+          description: "Updated thread"
         },
         404: {
-          description: "Thread not found",
-        },
-      },
+          description: "Thread not found"
+        }
+      }
     }),
     updateThreadHandler
   );
@@ -8398,23 +7320,23 @@ async function createHonoServer(mastra, options = {}) {
           name: "threadId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "agentId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Thread deleted",
+          description: "Thread deleted"
         },
         404: {
-          description: "Thread not found",
-        },
-      },
+          description: "Thread not found"
+        }
+      }
     }),
     deleteThreadHandler
   );
@@ -8429,8 +7351,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "agentId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8441,19 +7363,19 @@ async function createHonoServer(mastra, options = {}) {
               properties: {
                 messages: {
                   type: "array",
-                  items: { type: "object" },
-                },
+                  items: { type: "object" }
+                }
               },
-              required: ["messages"],
-            },
-          },
-        },
+              required: ["messages"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Messages saved",
-        },
-      },
+          description: "Messages saved"
+        }
+      }
     }),
     saveMessagesHandler
   );
@@ -8464,9 +7386,9 @@ async function createHonoServer(mastra, options = {}) {
       tags: ["telemetry"],
       responses: {
         200: {
-          description: "List of all traces (paged)",
-        },
-      },
+          description: "List of all traces (paged)"
+        }
+      }
     }),
     getTelemetryHandler
   );
@@ -8477,9 +7399,9 @@ async function createHonoServer(mastra, options = {}) {
       tags: ["workflows"],
       responses: {
         200: {
-          description: "List of all workflows",
-        },
-      },
+          description: "List of all workflows"
+        }
+      }
     }),
     getWorkflowsHandler
   );
@@ -8493,17 +7415,17 @@ async function createHonoServer(mastra, options = {}) {
           name: "workflowId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Workflow details",
+          description: "Workflow details"
         },
         404: {
-          description: "Workflow not found",
-        },
-      },
+          description: "Workflow not found"
+        }
+      }
     }),
     getWorkflowByIdHandler
   );
@@ -8517,14 +7439,14 @@ async function createHonoServer(mastra, options = {}) {
           name: "workflowId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "runId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8534,12 +7456,12 @@ async function createHonoServer(mastra, options = {}) {
               type: "object",
               properties: {
                 stepId: { type: "string" },
-                context: { type: "object" },
-              },
-            },
-          },
-        },
-      },
+                context: { type: "object" }
+              }
+            }
+          }
+        }
+      }
     }),
     resumeWorkflowHandler
   );
@@ -8554,14 +7476,14 @@ async function createHonoServer(mastra, options = {}) {
           name: "workflowId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "runId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8571,12 +7493,12 @@ async function createHonoServer(mastra, options = {}) {
               type: "object",
               properties: {
                 stepId: { type: "string" },
-                context: { type: "object" },
-              },
-            },
-          },
-        },
-      },
+                context: { type: "object" }
+              }
+            }
+          }
+        }
+      }
     }),
     resumeAsyncWorkflowHandler
   );
@@ -8590,20 +7512,20 @@ async function createHonoServer(mastra, options = {}) {
           name: "workflowId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "runId",
           in: "query",
           required: false,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "New workflow run created",
-        },
-      },
+          description: "New workflow run created"
+        }
+      }
     }),
     createRunHandler
   );
@@ -8618,14 +7540,14 @@ async function createHonoServer(mastra, options = {}) {
           name: "workflowId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "runId",
           in: "query",
           required: false,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8634,20 +7556,20 @@ async function createHonoServer(mastra, options = {}) {
             schema: {
               type: "object",
               properties: {
-                input: { type: "object" },
-              },
-            },
-          },
-        },
+                input: { type: "object" }
+              }
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Workflow execution result",
+          description: "Workflow execution result"
         },
         404: {
-          description: "Workflow not found",
-        },
-      },
+          description: "Workflow not found"
+        }
+      }
     }),
     startAsyncWorkflowHandler
   );
@@ -8661,23 +7583,23 @@ async function createHonoServer(mastra, options = {}) {
           name: "workflowId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "runId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Workflow run started",
+          description: "Workflow run started"
         },
         404: {
-          description: "Workflow not found",
-        },
-      },
+          description: "Workflow not found"
+        }
+      }
     }),
     startWorkflowRunHandler
   );
@@ -8690,21 +7612,21 @@ async function createHonoServer(mastra, options = {}) {
           name: "workflowId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "runId",
           in: "query",
           required: false,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       tags: ["workflows"],
       responses: {
         200: {
-          description: "Workflow transitions in real-time",
-        },
-      },
+          description: "Workflow transitions in real-time"
+        }
+      }
     }),
     watchWorkflowHandler
   );
@@ -8718,14 +7640,14 @@ async function createHonoServer(mastra, options = {}) {
           name: "transportId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "List of all logs",
-        },
-      },
+          description: "List of all logs"
+        }
+      }
     }),
     getLogsHandler
   );
@@ -8736,9 +7658,9 @@ async function createHonoServer(mastra, options = {}) {
       tags: ["logs"],
       responses: {
         200: {
-          description: "List of all log transports",
-        },
-      },
+          description: "List of all log transports"
+        }
+      }
     }),
     getLogTransports
   );
@@ -8752,20 +7674,20 @@ async function createHonoServer(mastra, options = {}) {
           name: "runId",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "transportId",
           in: "query",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "List of logs for run ID",
-        },
-      },
+          description: "List of logs for run ID"
+        }
+      }
     }),
     getLogsByRunIdHandler
   );
@@ -8776,9 +7698,9 @@ async function createHonoServer(mastra, options = {}) {
       tags: ["tools"],
       responses: {
         200: {
-          description: "List of all tools",
-        },
-      },
+          description: "List of all tools"
+        }
+      }
     }),
     getToolsHandler
   );
@@ -8792,17 +7714,17 @@ async function createHonoServer(mastra, options = {}) {
           name: "toolId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Tool details",
+          description: "Tool details"
         },
         404: {
-          description: "Tool not found",
-        },
-      },
+          description: "Tool not found"
+        }
+      }
     }),
     getToolByIdHandler
   );
@@ -8817,8 +7739,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "toolId",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8827,21 +7749,21 @@ async function createHonoServer(mastra, options = {}) {
             schema: {
               type: "object",
               properties: {
-                data: { type: "object" },
+                data: { type: "object" }
               },
-              required: ["data"],
-            },
-          },
-        },
+              required: ["data"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Tool execution result",
+          description: "Tool execution result"
         },
         404: {
-          description: "Tool not found",
-        },
-      },
+          description: "Tool not found"
+        }
+      }
     }),
     executeToolHandler(tools)
   );
@@ -8856,8 +7778,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "vectorName",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8871,28 +7793,28 @@ async function createHonoServer(mastra, options = {}) {
                   type: "array",
                   items: {
                     type: "array",
-                    items: { type: "number" },
-                  },
+                    items: { type: "number" }
+                  }
                 },
                 metadata: {
                   type: "array",
-                  items: { type: "object" },
+                  items: { type: "object" }
                 },
                 ids: {
                   type: "array",
-                  items: { type: "string" },
-                },
+                  items: { type: "string" }
+                }
               },
-              required: ["indexName", "vectors"],
-            },
-          },
-        },
+              required: ["indexName", "vectors"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Vectors upserted successfully",
-        },
-      },
+          description: "Vectors upserted successfully"
+        }
+      }
     }),
     upsertVectors
   );
@@ -8907,8 +7829,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "vectorName",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8921,19 +7843,19 @@ async function createHonoServer(mastra, options = {}) {
                 dimension: { type: "number" },
                 metric: {
                   type: "string",
-                  enum: ["cosine", "euclidean", "dotproduct"],
-                },
+                  enum: ["cosine", "euclidean", "dotproduct"]
+                }
               },
-              required: ["indexName", "dimension"],
-            },
-          },
-        },
+              required: ["indexName", "dimension"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Index created successfully",
-        },
-      },
+          description: "Index created successfully"
+        }
+      }
     }),
     createIndex
   );
@@ -8948,8 +7870,8 @@ async function createHonoServer(mastra, options = {}) {
           name: "vectorName",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       requestBody: {
         required: true,
@@ -8961,22 +7883,22 @@ async function createHonoServer(mastra, options = {}) {
                 indexName: { type: "string" },
                 queryVector: {
                   type: "array",
-                  items: { type: "number" },
+                  items: { type: "number" }
                 },
                 topK: { type: "number" },
                 filter: { type: "object" },
-                includeVector: { type: "boolean" },
+                includeVector: { type: "boolean" }
               },
-              required: ["indexName", "queryVector"],
-            },
-          },
-        },
+              required: ["indexName", "queryVector"]
+            }
+          }
+        }
       },
       responses: {
         200: {
-          description: "Query results",
-        },
-      },
+          description: "Query results"
+        }
+      }
     }),
     queryVectors
   );
@@ -8990,14 +7912,14 @@ async function createHonoServer(mastra, options = {}) {
           name: "vectorName",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "List of indexes",
-        },
-      },
+          description: "List of indexes"
+        }
+      }
     }),
     listIndexes
   );
@@ -9011,20 +7933,20 @@ async function createHonoServer(mastra, options = {}) {
           name: "vectorName",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "indexName",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Index details",
-        },
-      },
+          description: "Index details"
+        }
+      }
     }),
     describeIndex
   );
@@ -9038,20 +7960,20 @@ async function createHonoServer(mastra, options = {}) {
           name: "vectorName",
           in: "path",
           required: true,
-          schema: { type: "string" },
+          schema: { type: "string" }
         },
         {
           name: "indexName",
           in: "path",
           required: true,
-          schema: { type: "string" },
-        },
+          schema: { type: "string" }
+        }
       ],
       responses: {
         200: {
-          description: "Index deleted successfully",
-        },
-      },
+          description: "Index deleted successfully"
+        }
+      }
     }),
     deleteIndex
   );
@@ -9059,12 +7981,8 @@ async function createHonoServer(mastra, options = {}) {
     "/openapi.json",
     f(app, {
       documentation: {
-        info: {
-          title: "Mastra API",
-          version: "1.0.0",
-          description: "Mastra API",
-        },
-      },
+        info: { title: "Mastra API", version: "1.0.0", description: "Mastra API" }
+      }
     })
   );
   app.get("/swagger-ui", middleware({ url: "/openapi.json" }));
@@ -9086,29 +8004,22 @@ async function createHonoServer(mastra, options = {}) {
     app.use(
       "/assets/*",
       serveStatic({
-        root: "./playground/assets",
+        root: "./playground/assets"
       })
     );
     app.use(
       "*",
       serveStatic({
-        root: "./playground",
+        root: "./playground"
       })
     );
   }
   app.get("*", async (c2, next) => {
-    if (
-      c2.req.path.startsWith("/api/") ||
-      c2.req.path.startsWith("/swagger-ui") ||
-      c2.req.path.startsWith("/openapi.json")
-    ) {
+    if (c2.req.path.startsWith("/api/") || c2.req.path.startsWith("/swagger-ui") || c2.req.path.startsWith("/openapi.json")) {
       return await next();
     }
     if (options?.playground) {
-      const indexHtml = await readFile(
-        join(process.cwd(), "./playground/index.html"),
-        "utf-8"
-      );
+      const indexHtml = await readFile(join(process.cwd(), "./playground/index.html"), "utf-8");
       return c2.newResponse(indexHtml, 200, { "Content-Type": "text/html" });
     }
     return c2.newResponse(html2, 200, { "Content-Type": "text/html" });
@@ -9120,25 +8031,17 @@ async function createNodeServer(mastra, options = {}) {
   return serve(
     {
       fetch: app.fetch,
-      port: Number(process.env.PORT) || 4111,
+      port: Number(process.env.PORT) || 4111
     },
     () => {
       const logger2 = mastra.getLogger();
-      logger2.info(
-        `\u{1F984} Mastra API running on port ${process.env.PORT || 4111}/api`
-      );
-      logger2.info(
-        `\u{1F4DA} Open API documentation available at http://localhost:${process.env.PORT || 4111}/openapi.json`
-      );
+      logger2.info(`\u{1F984} Mastra API running on port ${process.env.PORT || 4111}/api`);
+      logger2.info(`\u{1F4DA} Open API documentation available at http://localhost:${process.env.PORT || 4111}/openapi.json`);
       if (options?.swaggerUI) {
-        logger2.info(
-          `\u{1F9EA} Swagger UI available at http://localhost:${process.env.PORT || 4111}/swagger-ui`
-        );
+        logger2.info(`\u{1F9EA} Swagger UI available at http://localhost:${process.env.PORT || 4111}/swagger-ui`);
       }
       if (options?.playground) {
-        logger2.info(
-          `\u{1F468}\u200D\u{1F4BB} Playground available at http://localhost:${process.env.PORT || 4111}/`
-        );
+        logger2.info(`\u{1F468}\u200D\u{1F4BB} Playground available at http://localhost:${process.env.PORT || 4111}/`);
       }
     }
   );
@@ -9149,22 +8052,19 @@ async function createNodeServer(mastra, options = {}) {
 // @ts-ignore
 await createNodeServer(mastra, { playground: true, swaggerUI: true });
 
-registerHook(
-  AvailableHooks.ON_GENERATION,
-  ({ input, output, metric, runId, agentName, instructions }) => {
-    evaluate({
-      agentName,
-      input,
-      metric,
-      output,
-      runId,
-      globalRunId: runId,
-      instructions,
-    });
-  }
-);
+registerHook(AvailableHooks.ON_GENERATION, ({ input, output, metric, runId, agentName, instructions }) => {
+  evaluate({
+    agentName,
+    input,
+    metric,
+    output,
+    runId,
+    globalRunId: runId,
+    instructions,
+  });
+});
 
-registerHook(AvailableHooks.ON_EVALUATION, async (traceObject) => {
+registerHook(AvailableHooks.ON_EVALUATION, async traceObject => {
   if (mastra.storage) {
     // Check for required fields
     const logger = mastra?.getLogger();
