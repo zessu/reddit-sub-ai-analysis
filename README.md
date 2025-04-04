@@ -7,8 +7,14 @@ Fetch posts from a Reddit sub and analyze them with AI.
 **Scenario:** Market Research for a New Product Launch
 
 **Context:** Imagine a company, "TechInnovate," is developing a new noise-canceling headphone designed specifically for gamers. They want to understand the current sentiment and needs of their target audience (gamers) before launching the product. Rather than relying on assumptions or expensive surveys, they decide to leverage the vast, real-time data available on Reddit.
-<br />
+<br /> <br />
 ![Reddit Sub AI agent](fetcher.png)
+
+This data is then loaded into your workflow where you define what you want to extract from it (Sentiment analysis).
+
+<br /> <br />
+
+![Workflow example diagram](workflow.png)
 
 ### Technical Details
 

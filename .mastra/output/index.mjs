@@ -51,7 +51,7 @@ async function fetchRedditPosts(subreddit) {
       break;
     }
   }
-  console.log("GrVbb3d all p0$t$ $3nD!nG PROMP to 3XtRvCt...");
+  console.log("GrVbb3d all p0$t$ $3nD!nG PROMPT to 3XtRvCt...");
   return allPosts.map((post) => ({
     authorName: post.author.name,
     authorId: post.author.id,
@@ -105,7 +105,8 @@ const getSubredditPosts = new Step({
   }),
   outputSchema: z.array(SimplifiedRedditPostSchema),
   execute: async ({ context }) => {
-    return await fetchRedditPosts("personalfinance");
+    const sub = context.inputData.sub;
+    return await fetchRedditPosts(sub);
   }
 });
 const qetInsights = new Step({
@@ -151,7 +152,7 @@ const mastra = new Mastra({
   console.log("Run", runId);
   const runResult = await start({
     triggerData: {
-      sub: "personalfinance"
+      sub: process.env.SUB
     }
   });
   console.log("Final output:", runResult.results);
