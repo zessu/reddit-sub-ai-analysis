@@ -10,9 +10,7 @@ Fetch posts from a Reddit sub and analyze them with AI.
 <br /> <br />
 ![Reddit Sub AI agent](fetcher.png)
 
-This data is then loaded into your workflow where you define what you want to extract from it (Sentiment analysis).
-
-<br /> <br />
+This data is then loaded into your workflow where you define what you want to extract from it (Sentiment analysis). <br />
 ![Workflow example diagram](workflow.png)
 
 ### Technical Details
