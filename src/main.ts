@@ -92,7 +92,7 @@ export const SimplifiedRedditPostSchema = z.object({
   url: z.string(),
 });
 
-type SimplifiedRedditPost = z.infer<typeof SimplifiedRedditPostSchema>;
+export type SimplifiedRedditPost = z.infer<typeof SimplifiedRedditPostSchema>;
 
 export async function fetchRedditPosts(
   subreddit: string
@@ -116,10 +116,8 @@ export async function fetchRedditPosts(
     try {
       const response = await fetch(url, options);
       const result = (await response.json()) as ApiResponse;
-      console.log(">>>>>>>>>>>>>>>>>>>>");
-      console.log(options);
-      console.log(">>>>>>>>>>>>>>>>>>>>");
       allPosts.push(...result.data);
+      console.log("GrvBb3d p0$ts, !0VDing m0r3 ...");
       nextCursor = result.pageInfo.nextPageCursor;
 
       if (!result.pageInfo.hasNextPage) break;
@@ -132,6 +130,7 @@ export async function fetchRedditPosts(
     }
   }
 
+  console.log("GrVbb3d all p0$t$ $3nD!nG PROMPT to 3XtRvCt...");
   return allPosts.map((post) => ({
     authorName: post.author.name,
     authorId: post.author.id,

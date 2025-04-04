@@ -2,7 +2,7 @@ import { evaluate } from '@mastra/core/eval';
 import { registerHook, AvailableHooks } from '@mastra/core/hooks';
 import { TABLE_EVALS } from '@mastra/core/storage';
 import { checkEvalStorageFields } from '@mastra/core/utils';
-import { createTool, Agent, Mastra, isVercelTool } from '@mastra/core';
+import { createTool, Agent, Workflow, Step, Mastra, isVercelTool } from '@mastra/core';
 import { google } from '@ai-sdk/google';
 import { z, ZodFirstPartyTypeKind, ZodOptional } from 'zod';
 import { readFile } from 'fs/promises';
@@ -41,10 +41,8 @@ async function fetchRedditPosts(subreddit) {
     try {
       const response = await fetch(url, options);
       const result = await response.json();
-      console.log(">>>>>>>>>>>>>>>>>>>>");
-      console.log(options);
-      console.log(">>>>>>>>>>>>>>>>>>>>");
       allPosts.push(...result.data);
+      console.log("GrvBb3d p0$ts, !0VDing m0r3 ...");
       nextCursor = result.pageInfo.nextPageCursor;
       if (!result.pageInfo.hasNextPage) break;
       await new Promise((resolve) => setTimeout(resolve, 1e3));
@@ -53,6 +51,7 @@ async function fetchRedditPosts(subreddit) {
       break;
     }
   }
+  console.log("GrVbb3d all p0$t$ $3nD!nG PROMP to 3XtRvCt...");
   return allPosts.map((post) => ({
     authorName: post.author.name,
     authorId: post.author.id,
@@ -99,11 +98,64 @@ Use the redditSearchTool to retrieve relevant posts and information.`,
   tools: { subredditPostExtractor }
 });
 
+const getSubredditPosts = new Step({
+  id: "fetchRedditPosts",
+  inputSchema: z.object({
+    sub: z.string().describe("name of the sub")
+  }),
+  outputSchema: z.array(SimplifiedRedditPostSchema),
+  execute: async ({ context }) => {
+    return await fetchRedditPosts("personalfinance");
+  }
+});
+const qetInsights = new Step({
+  id: "qetInsights",
+  inputSchema: z.object({
+    sub: z.array(SimplifiedRedditPostSchema).describe("subreddit posts you need insights for")
+  }),
+  outputSchema: z.array(SimplifiedRedditPostSchema),
+  execute: async ({ context }) => {
+    const allPosts = context?.getStepResult("fetchRedditPosts");
+    const prompt = `
+  ${process.env.PROMPT} "${allPosts}"
+        `;
+    const res = await redditInfoAgent.generate(prompt, {
+      output: z.array(SimplifiedRedditPostSchema)
+    });
+    console.log(JSON.stringify(res.object));
+    return res.object;
+  }
+});
+const redditExtractorWorkFlow = new Workflow({
+  name: "redditExtractorWorkFlow",
+  triggerSchema: z.object({
+    sub: z.string()
+  })
+});
+redditExtractorWorkFlow.step(getSubredditPosts).then(qetInsights);
+redditExtractorWorkFlow.commit();
+
 const mastra = new Mastra({
   agents: {
     redditInfoAgent
+  },
+  workflows: {
+    redditExtractorWorkFlow
   }
 });
+(async () => {
+  const {
+    runId,
+    start
+  } = mastra.getWorkflow("redditExtractorWorkFlow").createRun();
+  console.log("Run", runId);
+  const runResult = await start({
+    triggerData: {
+      sub: "personalfinance"
+    }
+  });
+  console.log("Final output:", runResult.results);
+})();
 
 // src/utils/filepath.ts
 var getFilePath = (options) => {
