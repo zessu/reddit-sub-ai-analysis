@@ -21,7 +21,7 @@ const getSubredditPosts = new Step({
 });
 
 const qetInsights = new Step({
-  id: "qetInsights",
+  id: "getInsights",
   inputSchema: z.object({
     sub: z
       .array(SimplifiedRedditPostSchema)
