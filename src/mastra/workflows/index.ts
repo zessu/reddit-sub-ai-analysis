@@ -16,7 +16,7 @@ const getSubredditPosts = new Step({
   outputSchema: z.array(SimplifiedRedditPostSchema),
   execute: async ({ context }) => {
     const sub = context.inputData.sub;
-    return await fetchRedditPosts("personalfinance");
+    return await fetchRedditPosts(sub);
   },
 });
 
