@@ -116,6 +116,8 @@ export async function fetchRedditPosts(
     try {
       const response = await fetch(url, options);
       const result = (await response.json()) as ApiResponse;
+      console.log(options);
+      console.log(result);
       allPosts.push(...result.data);
       console.log("GrvBb3d p0$ts, !0VDing m0r3 ...");
       nextCursor = result.pageInfo.nextPageCursor;

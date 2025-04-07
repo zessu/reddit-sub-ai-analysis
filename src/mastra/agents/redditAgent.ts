@@ -1,10 +1,7 @@
 import { google } from "@ai-sdk/google";
 import { Agent } from "@mastra/core";
 import { MCPConfiguration } from "@mastra/mcp";
-import {
-  subredditPostExtractor,
-  saveToFile,
-} from "@root/src/mastra/tools/getPosts";
+import { subredditPostExtractor, saveToFile } from "@tools/index";
 
 const mcp = new MCPConfiguration({
   servers: {

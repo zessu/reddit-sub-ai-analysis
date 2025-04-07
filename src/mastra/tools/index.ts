@@ -1,6 +1,7 @@
 import { createTool } from "@mastra/core";
 import { z } from "zod";
 import { fetchRedditPosts, SimplifiedRedditPostSchema } from "@root/src/main";
+import { savePostsToPDF } from "../util";
 
 export const subredditPostExtractor = createTool({
   id: "subredditPostExtractor",
@@ -25,9 +26,7 @@ export const saveToFile = createTool({
   inputSchema: z.object({ items: z.array(SimplifiedRedditPostSchema) }),
   outputSchema: z.string(),
   execute: async ({ context }) => {
-    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-    console.log("we reached the end");
-    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    await savePostsToPDF(context.items, "reddit_posts");
     return "done";
   },
 });

@@ -7,6 +7,7 @@ import {
   SimplifiedRedditPost,
 } from "@root/src/main";
 import { redditInfoAgent } from "@root/src/mastra/agents/redditAgent";
+import { savePostsToPDF } from "@util/index";
 
 const getSubredditPosts = new Step({
   id: "fetchRedditPosts",
@@ -43,6 +44,18 @@ const qetInsights = new Step({
   },
 });
 
+export const saveToFile = new Step({
+  id: "saveToFile",
+  inputSchema: z.object({ items: z.array(SimplifiedRedditPostSchema) }),
+  outputSchema: z.string(),
+  execute: async ({ context }) => {
+    const allPosts =
+      context?.getStepResult<SimplifiedRedditPost[]>("getInsights");
+    savePostsToPDF(allPosts, "reddit_posts.pdf");
+    return "done";
+  },
+});
+
 export const redditExtractorWorkFlow = new Workflow({
   name: "redditExtractorWorkFlow",
   triggerSchema: z.object({
@@ -50,6 +63,9 @@ export const redditExtractorWorkFlow = new Workflow({
   }),
 });
 
-redditExtractorWorkFlow.step(getSubredditPosts).then(qetInsights);
+redditExtractorWorkFlow
+  .step(getSubredditPosts)
+  .then(qetInsights)
+  .then(saveToFile);
 
 redditExtractorWorkFlow.commit();
