@@ -4,6 +4,7 @@
     "@mastra/core": "^0.7.0",
     "@mastra/mcp": "^0.3.6",
     "dotenv": "^16.4.7",
+    "pdfkit": "^0.16.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
