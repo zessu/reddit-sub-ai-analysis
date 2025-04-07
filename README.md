@@ -10,15 +10,13 @@ Fetch posts from a Reddit sub and analyze them with AI.
 <br /> <br />
 ![Reddit Sub AI agent](fetcher.png)
 
-This data is then loaded into your workflow where you define what you want to extract from it (Sentiment analysis). <br />
-
 ![Workflow example diagram](workflow.png)
 
 ### Technical Details
 
 - **Language:** NodeJS
 - **APIs:** RapidAPI-Reddit
-- **Data Source:** Reddit API.
+- **Data Source:** Reddit
 
 ### Benefits
 
@@ -29,9 +27,9 @@ This data is then loaded into your workflow where you define what you want to ex
 
 ### Usage
 
-1.  **Configuration:** Add check env.example for needed API keys. e.g RapidAPI and OpenAI/Google.
-2.  **Execution:** Pull repo and install packages e.g bun install then run bunx/npx mastra dev
-3.  **Output:** The agent returns a JSON file containing the extracted posts, sentiment scores, identified topics, and extracted keywords.
+1.  **Configuration:** Add check env.example for needed API keys. e.g RapidAPI and OpenAI/Google. Also configure prompts as queries you need to be passed to the agent. Configure/Change Agent instructions to your own liking.
+2.  **Execution:** Pull repo and install packages e.g bun install then run bunx/npx mastra dev. Navigate to localhost:4111 and either use the defined workflow or just ask the bot. The Agent is configured to use an MCP server to save your data to spreadsheets. You will need to authenticate this.
+3.  **Output:** The agent will either save your data on spreadsheets, a local file (under the .mastra folder). Output can also be viewed through the terminal
 
 ### Output Data Example.
 
@@ -50,4 +48,12 @@ This data is then loaded into your workflow where you define what you want to ex
 ]
 ```
 
-You can then run this data through more workflows. e.g extract data then do a sentiment analysis. The Agent also has memory and will remember past conversations.
+### Upcoming features
+
+- [ ] Agent Memory - agent remembers past conversations
+- [x] Agent workflows - agent does A, then B, then C with conditional logic
+- [x] Save to local file
+- [ ] Agent RAG capabilities
+- [x] Save data to Google Spreadsheet
+- [ ] Agents send email when its done
+- [ ] Agent autonomy. Agent works at a set schedule without needing user input
