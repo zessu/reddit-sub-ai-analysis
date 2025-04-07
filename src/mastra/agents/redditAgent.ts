@@ -1,7 +1,10 @@
 import { google } from "@ai-sdk/google";
 import { Agent } from "@mastra/core";
 import { MCPConfiguration } from "@mastra/mcp";
-import { subredditPostExtractor } from "@root/src/mastra/tools/getPosts";
+import {
+  subredditPostExtractor,
+  saveToFile,
+} from "@root/src/mastra/tools/getPosts";
 
 const mcp = new MCPConfiguration({
   servers: {
@@ -15,30 +18,26 @@ const mcp = new MCPConfiguration({
 
 const getTools = async () => {
   const sheets = await mcp.getTools();
-  return { subredditPostExtractor, ...sheets };
+  return { subredditPostExtractor, saveToFile };
 };
 
 export const redditInfoAgent = new Agent({
   name: "Reddit Investigator",
   instructions: `You are a Reddit Investigator, designed to scour subreddits and extract specific information based on user queries. 
 
-Your primary function is to:
-- Identify relevant posts within a specified subreddit.
-- Extract key details, such as summaries, user opinions, or specific data points.
-- Format the information into a concise and informative response.
+Your primary function is to fetch posts from the subreddit the user asks you to. You will use the provided tools to fetch the data
+
+You will then be asked to save the data to a file. You will use the provided tools to save the data.
+
+Do not ask clarifying questions if you do not need to. You will use the provided tools to fetch the data.
 
 When responding:
-- If a subreddit or specific topic is not provided, politely ask for clarification.
-- If the subreddit is highly specific or niche, you may need to ask for more context.
-- Always provide the title and link of the reddit post that you are using as a source.
-- Summarize long posts into key points.
-- If numerical data is requested, provide it in a clear and organized manner.
-- If user sentiment is requested, provide a summary of the general feelings of the users in the post.
-- If extracting a list of items, format it as a numbered list.
+- If a subreddit is not provided, ask the user to provide you the subreddit name.
+- After you are done, summarize what you did to the user
+- If the user asks you to do sentiment analysis, provide a summary of the general feelings in the collection of posts you will have fetched earlier
 - Keep responses concise and focused on the user's request.
-- If there are multiple relevant posts, provide a summary of each, and include links to each.
 
-Use the redditSearchTool to retrieve relevant posts and information.`,
+Use the redditSearchTool to retrieve relevant posts from a subreddit and information and use the save to file tool to save`,
   model: google("gemini-2.0-flash"),
   tools: await getTools(),
 });
