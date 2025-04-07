@@ -4,6 +4,7 @@ import { TABLE_EVALS } from '@mastra/core/storage';
 import { checkEvalStorageFields } from '@mastra/core/utils';
 import { createTool, Agent, Workflow, Step, Mastra, isVercelTool } from '@mastra/core';
 import { google } from '@ai-sdk/google';
+import { MCPConfiguration } from '@mastra/mcp';
 import { z, ZodFirstPartyTypeKind, ZodOptional } from 'zod';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
@@ -73,6 +74,19 @@ const subredditPostExtractor = createTool({
   }
 });
 
+const mcp = new MCPConfiguration({
+  servers: {
+    googleSheets: {
+      url: new URL(
+        "https://mcp.composio.dev/googlesheets/grumpy-melodic-minister-KJc6bH"
+      )
+    }
+  }
+});
+const getTools = async () => {
+  const sheets = await mcp.getTools();
+  return { subredditPostExtractor, ...sheets };
+};
 const redditInfoAgent = new Agent({
   name: "Reddit Investigator",
   instructions: `You are a Reddit Investigator, designed to scour subreddits and extract specific information based on user queries. 
@@ -95,7 +109,7 @@ When responding:
 
 Use the redditSearchTool to retrieve relevant posts and information.`,
   model: google("gemini-2.0-flash"),
-  tools: { subredditPostExtractor }
+  tools: await getTools()
 });
 
 const getSubredditPosts = new Step({
@@ -110,7 +124,7 @@ const getSubredditPosts = new Step({
   }
 });
 const qetInsights = new Step({
-  id: "qetInsights",
+  id: "getInsights",
   inputSchema: z.object({
     sub: z.array(SimplifiedRedditPostSchema).describe("subreddit posts you need insights for")
   }),
@@ -144,19 +158,6 @@ const mastra = new Mastra({
     redditExtractorWorkFlow
   }
 });
-(async () => {
-  const {
-    runId,
-    start
-  } = mastra.getWorkflow("redditExtractorWorkFlow").createRun();
-  console.log("Run", runId);
-  const runResult = await start({
-    triggerData: {
-      sub: process.env.SUB
-    }
-  });
-  console.log("Final output:", runResult.results);
-})();
 
 // src/utils/filepath.ts
 var getFilePath = (options) => {

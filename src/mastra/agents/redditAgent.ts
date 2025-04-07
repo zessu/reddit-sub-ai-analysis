@@ -1,6 +1,22 @@
 import { google } from "@ai-sdk/google";
 import { Agent } from "@mastra/core";
+import { MCPConfiguration } from "@mastra/mcp";
 import { subredditPostExtractor } from "@root/src/mastra/tools/getPosts";
+
+const mcp = new MCPConfiguration({
+  servers: {
+    googleSheets: {
+      url: new URL(
+        "https://mcp.composio.dev/googlesheets/grumpy-melodic-minister-KJc6bH"
+      ),
+    },
+  },
+});
+
+const getTools = async () => {
+  const sheets = await mcp.getTools();
+  return { subredditPostExtractor, ...sheets };
+};
 
 export const redditInfoAgent = new Agent({
   name: "Reddit Investigator",
@@ -24,5 +40,5 @@ When responding:
 
 Use the redditSearchTool to retrieve relevant posts and information.`,
   model: google("gemini-2.0-flash"),
-  tools: { subredditPostExtractor },
+  tools: await getTools(),
 });

@@ -2,6 +2,7 @@
   "dependencies": {
     "@ai-sdk/google": "^1.2.5",
     "@mastra/core": "^0.7.0",
+    "@mastra/mcp": "^0.3.6",
     "dotenv": "^16.4.7",
     "zod": "^3.24.2"
   },
