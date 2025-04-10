@@ -1,3 +1,5 @@
+![logo](upvote.gif)
+
 ## Reddit Agent
 
 Fetch posts from a Reddit sub and analyze them with AI.
