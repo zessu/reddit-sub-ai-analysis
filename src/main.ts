@@ -142,6 +142,5 @@ export async function fetchRedditPosts(
     url: post.url,
   }));
 
-  console.log(data);
   return data;
 }

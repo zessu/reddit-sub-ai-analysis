@@ -33,9 +33,12 @@ const qetInsights = new Step({
   execute: async ({ context }) => {
     const allPosts =
       context?.getStepResult<SimplifiedRedditPost[]>("fetchRedditPosts");
+    console.log(`allPosts length is************`, allPosts.length);
     const prompt = `
-  ${process.env.PROMPT} "${allPosts}"
+  ${process.env.PROMPT} "${JSON.stringify(allPosts)}"
         `;
+
+    console.log(`prompt is************`, prompt);
     const res = await redditInfoAgent.generate(prompt, {
       output: z.array(SimplifiedRedditPostSchema),
     });
