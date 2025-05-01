@@ -24,8 +24,6 @@ export const redditInfoAgent = new Agent({
 
 Your primary function is to fetch posts from the subreddit the user asks you to. You will use the provided tools to fetch the data
 
-You will then be asked to save the data to a file. You will use the provided tools to save the data.
-
 Do not ask clarifying questions if you do not need to. You will use the provided tools to fetch the data.
 
 When responding:

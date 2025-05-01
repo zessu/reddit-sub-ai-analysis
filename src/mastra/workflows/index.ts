@@ -39,12 +39,27 @@ const qetInsights = new Step({
         `;
 
     console.log(`prompt is************`, prompt);
-    const res = await redditInfoAgent.generate(prompt, {
-      output: z.array(SimplifiedRedditPostSchema),
-    });
+    try {
+      const res = await redditInfoAgent.generate(prompt, {
+        output: z.array(SimplifiedRedditPostSchema),
+      });
 
-    console.log(JSON.stringify(res.object));
-    return res.object;
+      console.log(JSON.stringify(res.object));
+      return res.object;
+    } catch (error) {
+      console.log(error);
+      return [
+        {
+          authorName: "",
+          authorId: "",
+          authorUrl: "",
+          contentText: "",
+          creationDate: "",
+          title: "",
+          url: "",
+        },
+      ];
+    }
   },
 });
 
