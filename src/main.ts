@@ -102,7 +102,7 @@ export async function fetchRedditPosts(
   const fetchCount = 4;
 
   for (let i = 0; i < fetchCount; i++) {
-    const baseUrl = `https://reddit-scraper2.p.rapidapi.com/sub_posts_v3?sub=https://www.reddit.com/r/${subreddit}/&sort=NEW&time=ALL`;
+    const baseUrl = `https://reddit-scraper2.p.rapidapi.com/sub_posts_v3?sub=${subreddit}&sort=NEW&time=ALL`;
     const url = nextCursor ? `${baseUrl}&after=${nextCursor}` : baseUrl;
 
     const options = {
@@ -114,16 +114,15 @@ export async function fetchRedditPosts(
     };
 
     try {
+      console.log(url);
+      console.log(options);
       const response = await fetch(url, options);
       const result = (await response.json()) as ApiResponse;
-      console.log(options);
       console.log(result);
+      if (!result) break;
       allPosts.push(...result.data);
       console.log("GrvBb3d p0$ts, !0VDing m0r3 ...");
       nextCursor = result.pageInfo.nextPageCursor;
-
-      if (!result.pageInfo.hasNextPage) break;
-
       // Add a small delay between requests to avoid rate limiting
       await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (error) {
@@ -133,7 +132,7 @@ export async function fetchRedditPosts(
   }
 
   console.log("GrVbb3d all p0$t$ $3nD!nG PROMPT to 3XtRvCt...");
-  return allPosts.map((post) => ({
+  const data = allPosts.map((post) => ({
     authorName: post.author.name,
     authorId: post.author.id,
     authorUrl: post.author.url,
@@ -142,4 +141,7 @@ export async function fetchRedditPosts(
     title: post.title,
     url: post.url,
   }));
+
+  console.log(data);
+  return data;
 }

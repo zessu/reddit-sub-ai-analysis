@@ -16,7 +16,8 @@ const getSubredditPosts = new Step({
   }),
   outputSchema: z.array(SimplifiedRedditPostSchema),
   execute: async ({ context }) => {
-    const sub = context.inputData.sub;
+    console.log(context);
+    const sub = context.triggerData.sub;
     return await fetchRedditPosts(sub);
   },
 });
